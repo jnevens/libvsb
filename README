@@ -1,0 +1,40 @@
+nstallation
+============
+
+On UNIX-like systems (including Linux, Mac OS X, MinGW), use the 
+autotools based build system. Run the following commands from the top 
+directory (containing this file) to configure, build and install the 
+library and utilities:
+
+  $ ./configure
+  $ make
+  $ make install
+
+If you downloaded the libdivecomputer source code directly from the git
+source code repository, then you need to create the configure script as
+the first step:
+
+  $ autoreconf --install
+
+To uninstall libdivecomputer again, run:
+
+  $ make uninstall
+
+Support
+=======
+
+Please send bug reports, feedback or questions via github
+
+  https://github.com/jnevens/libvsb
+
+or contact me directly:
+
+  jasper.nevens@linux.com
+
+License
+=======
+
+libvsb is free software, released under the terms of the GNU
+Lesser General Public License (LGPLv2.1).
+
+You can find a copy of the license in the file COPYING.

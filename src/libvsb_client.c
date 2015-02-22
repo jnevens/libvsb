@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "libvsb_client.h"
-#include "libvsb_frame.h"
+#include "libvsb/libvsb_client.h"
+#include "libvsb/libvsb_frame.h"
 
 struct vsb_client_s
 {
