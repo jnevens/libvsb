@@ -21,7 +21,7 @@ void vsb_conn_destroy(vsb_conn_t *vsb_conn);
 int vsb_conn_get_fd(vsb_conn_t *vsb_conn);
 void vsb_conn_register_disconnect_cb(vsb_conn_t *vsb_conn, vsb_server_conn_disconnection_cb_t disco_cb, void *arg);
 
-void vsb_server_broadcast_frame(vsb_server_t *vsb_server, vsb_frame_t *frame);
+void vsb_server_broadcast_frame(vsb_server_t *vsb_server, vsb_frame_t *frame, int from_fd);
 vsb_server_t *vsb_server_init(const char *path);
 void vsb_server_close(vsb_server_t *vsb_server);
 int vsb_server_get_fd(vsb_server_t *vsb_server);

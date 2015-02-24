@@ -89,13 +89,15 @@ static void vsb_server_conn_list_remove(vsb_conn_t *vsb_conn)
 	}
 }
 
-void vsb_server_broadcast_frame(vsb_server_t *vsb_server, vsb_frame_t *frame)
+void vsb_server_broadcast_frame(vsb_server_t *vsb_server, vsb_frame_t *frame, int from_fd)
 {
 	int i;
 	for (i = 0; i < VSB_MAX_CONNECTIONS; i++) {
 		if (vsb_server->connections[i] != NULL) {
-			if (write(vsb_server->connections[i]->fd, frame, vsb_frame_get_framesize(frame)) < 0)
-				perror("writing on stream socket");
+			if (vsb_server->connections[i]->fd != from_fd) {
+				if (write(vsb_server->connections[i]->fd, frame, vsb_frame_get_framesize(frame)) < 0)
+					perror("writing on stream socket");
+			}
 		}
 	}
 }
