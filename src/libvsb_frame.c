@@ -50,6 +50,17 @@ void vsb_frame_destroy(vsb_frame_t *vsb_frame)
 	free(vsb_frame);
 }
 
+static void vsb_buffer_print(uint8_t *data, size_t len)
+{
+	int i;
+
+	printf("buffer [%u]:", (unsigned)len);
+	for(i=0; i < len; i++) {
+		printf(" %02X", data[i]);
+	}
+	printf("\n");
+}
+
 bool vsb_frame_is_valid(uint8_t *data, size_t rlen)
 {
 	bool is_valid = false;

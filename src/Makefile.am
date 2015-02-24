@@ -10,4 +10,3 @@ libvsb_la_SOURCES = \
 	libvsb_client.c \
 	libvsb_server.c \
 	libvsb_frame.c
-

@@ -42,7 +42,7 @@ struct vsb_server_s
 
 vsb_conn_t *vsb_conn_init(vsb_server_t *vsb_server, int fd)
 {
-	vsb_conn_t *vsb_conn = calloc(1, sizeof(vsb_conn_t));\
+	vsb_conn_t *vsb_conn = calloc(1, sizeof(vsb_conn_t));
 	vsb_conn->vsb_server = vsb_server;
 	vsb_conn->fd = fd;
 	return vsb_conn;
@@ -123,7 +123,6 @@ vsb_server_t *vsb_server_init(const char *path)
 		perror("binding stream socket");
 		exit(1);
 	}
-	printf("Socket has name %s\n", vsb_server->server.sun_path);
 
 	listen(fd, 5);
 	vsb_server->server_fd = fd;
