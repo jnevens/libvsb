@@ -9,9 +9,9 @@
 
 vsb_client_t *vsb_client = NULL;
 
-void incoming_data(void *data, void *arg)
+void incoming_data(void *data, size_t len, void *arg)
 {
-	printf("%s-->%s\n", (char *)arg, (char *)data);
+	printf("recv data: %s [%d]\n", (char *)data, (int)len);
 }
 
 void handle_incoming_event(int fd, short revents, void *arg)
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
 	vsb_client = vsb_client_init(argv[1]);
 	int vsb_client_fd = vsb_client_get_fd(vsb_client);
-	vsb_client_register_incoming_data_cb(vsb_client, incoming_data, (void *)"CLIENT");
+	vsb_client_register_incoming_data_cb(vsb_client, incoming_data, NULL);
 	evquick_addevent(vsb_client_fd, EVQUICK_EV_READ, handle_incoming_event, NULL, vsb_client);
 	vsb_client_register_disconnect_cb(vsb_client, handle_connection_disconnect, NULL);
 
