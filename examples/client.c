@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "libevquick.h"
-#include "libvsb_client.h"
+#include <libvsb/libvsb_client.h>
 
 vsb_client_t *vsb_client = NULL;
 
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	evquick_init();
 
 	if (argc < 3) {
-		printf("usage:%s <pathname> <data>", argv[0]);
+		printf("usage:%s <pathname> <data>\n", argv[0]);
 		exit(1);
 	}
 

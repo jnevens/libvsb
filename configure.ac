@@ -28,6 +28,20 @@ LT_PREREQ([2.2.0])
 LT_INIT()
 LT_PROG_RC
 
+# Tool applications.
+AC_ARG_ENABLE([vsbtools],
+	[AS_HELP_STRING([--enable-vsbtools=@<:@yes/no@:>@],
+		[Build vsb tools @<:@default=yes@:>@])],
+	[], [enable_vsbtools=yes])
+AM_CONDITIONAL([ENABLE_TOOLS], [test "x$enable_vsbtools" = "xyes"])
+
+# Example applications.
+AC_ARG_ENABLE([examples],
+	[AS_HELP_STRING([--enable-examples=@<:@yes/no@:>@],
+		[Build vsb example applications@<:@default=yes@:>@])],
+	[], [enable_examples=yes])
+AM_CONDITIONAL([ENABLE_EXAMPLES], [test "x$enable_examples" = "xyes"])
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CC_C99
@@ -50,6 +64,8 @@ AC_CONFIG_FILES([
 	include/Makefile
 	include/libvsb/Makefile
 	src/Makefile
+	tools/Makefile
+	examples/Makefile
 ])
 
 AC_OUTPUT

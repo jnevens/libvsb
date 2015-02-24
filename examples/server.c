@@ -9,7 +9,7 @@
 #include <errno.h>
 
 #include "libevquick.h"
-#include "libvsb_server.h"
+#include <libvsb/libvsb_server.h>
 
 static evquick_event *server_event = NULL;
 

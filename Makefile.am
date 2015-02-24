@@ -1,6 +1,14 @@
 SUBDIRS = include src
 
-AM_MAKEFLAGS = -s
+if ENABLE_EXAMPLES
+SUBDIRS += examples 
+endif
+
+if ENABLE_TOOLS
+SUBDIRS += tools
+endif
+
+# AM_MAKEFLAGS = -s
 ACLOCAL_AMFLAGS = -I m4
 
 pkgconfigdir = $(libdir)/pkgconfig
