@@ -13,6 +13,7 @@
 #include <sys/un.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "libvsb/libvsb_client.h"
 #include "libvsb/libvsb_frame.h"
@@ -21,6 +22,9 @@ struct vsb_client_s
 {
 	vsb_client_incoming_data_cb_t data_callback;
 	void *data_callback_arg;
+	vsb_client_disconnection_cb_t disco_callback;
+	void *disco_callback_arg;
+	vsb_frame_receiver_t receiver;
 	struct sockaddr_un server;
 	int fd;
 };
@@ -40,6 +44,10 @@ vsb_client_t *vsb_client_init(const char *path)
 		exit(ENOMEM);
 	}
 
+	// set socket non blocking
+	int flags = fcntl(fd, F_GETFL, 0);
+	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
 	vsb_client->fd = fd;
 	vsb_client->server.sun_family = AF_UNIX;
 	strcpy(vsb_client->server.sun_path, path);
@@ -55,6 +63,7 @@ vsb_client_t *vsb_client_init(const char *path)
 
 void vsb_client_close(vsb_client_t *vsb_client)
 {
+	vsb_frame_receiver_reset(&vsb_client->receiver);
 	close(vsb_client->fd);
 	free(vsb_client);
 }
@@ -71,23 +80,37 @@ void vsb_client_register_incoming_data_cb(vsb_client_t *vsb_client, vsb_client_i
 	vsb_client->data_callback_arg = arg;
 }
 
+void vsb_client_register_disconnect_cb(vsb_client_t *vsb_client, vsb_client_disconnection_cb_t disco_cb, void *arg)
+{
+	vsb_client->disco_callback = disco_cb;
+	vsb_client->disco_callback_arg = arg;
+}
+
 void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 {
+
 	uint8_t buf[1024];
 	int rval;
 
-	bzero(buf, sizeof(buf));
-	if ((rval = read(vsb_client->fd, buf, 1024)) < 0) {
-		perror("reading stream message");
-	} else if (rval == 0) {
-		printf("Ending connection\n");
-		close(vsb_client->fd);
-		exit(0);
-	} else {
-		if (vsb_frame_is_valid(buf, rval) == true) {
-			vsb_frame_t *frame = (vsb_frame_t *)buf;
-			if (vsb_client->data_callback) {
-				vsb_client->data_callback(vsb_frame_get_data(frame), vsb_client->data_callback_arg);
+	while (1) {
+		if ((rval = read(vsb_client->fd, buf, 1024)) < 0) {
+			if (errno == EWOULDBLOCK) {
+				break;
+			}
+			perror("reading stream message");
+		} else if (rval == 0) { // close connection
+			close(vsb_client->fd);
+			if(vsb_client->disco_callback)
+				vsb_client->disco_callback(vsb_client->disco_callback_arg);
+			break;
+		} else { // get data
+			vsb_frame_t *frame = NULL;
+			vsb_frame_receiver_add_data(&vsb_client->receiver, buf, (size_t) rval);
+
+			while ((frame = vsb_frame_receiver_parse_data(&vsb_client->receiver)) != NULL) {
+				if (vsb_client->data_callback) {
+					vsb_client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), vsb_client->data_callback_arg);
+				}
 			}
 		}
 	}

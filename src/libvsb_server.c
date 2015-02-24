@@ -13,6 +13,7 @@
 #include <sys/un.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include "libvsb/libvsb_server.h"
 #include "libvsb/libvsb_frame.h"
@@ -27,6 +28,7 @@ struct vsb_conn_s
 	vsb_server_t *vsb_server;
 	vsb_server_conn_disconnection_cb_t disco_cb;
 	void *disco_arg;
+	vsb_frame_receiver_t receiver;
 };
 
 struct vsb_server_s
@@ -48,6 +50,7 @@ vsb_conn_t *vsb_conn_init(vsb_server_t *vsb_server, int fd)
 
 void vsb_conn_destroy(vsb_conn_t *vsb_conn)
 {
+	vsb_frame_receiver_reset(&vsb_conn->receiver);
 	free(vsb_conn);
 }
 
@@ -146,7 +149,9 @@ void vsb_server_handle_server_event(vsb_server_t *vsb_server)
 {
 	int nfd = accept(vsb_server->server_fd, 0, 0);
 	if (nfd > 0) {
-		printf("new connection created on fd: %d\n", nfd);
+		// set socket non blocking
+		int flags = fcntl(nfd, F_GETFL, 0);
+		fcntl(nfd, F_SETFL, flags | O_NONBLOCK);
 
 		vsb_conn_t *vsb_conn = vsb_conn_init(vsb_server, nfd);
 
@@ -160,24 +165,32 @@ void vsb_server_handle_server_event(vsb_server_t *vsb_server)
 void vsb_server_handle_connection_event(vsb_conn_t *vsb_conn)
 {
 	vsb_server_t *vsb_server = vsb_conn->vsb_server;
+	vsb_frame_receiver_t *receiver = &vsb_conn->receiver;
 	uint8_t buf[1024];
 	ssize_t rval;
-	printf("incoming message on fd: %d\n", vsb_conn->fd);
 
 	bzero(buf, sizeof(buf));
-	if ((rval = read(vsb_conn->fd, buf, 1024)) < 0) {
-		perror("reading stream message");
-	} else if (rval == 0) {
-		close(vsb_conn->fd);
-		if(vsb_conn->disco_cb)
-			vsb_conn->disco_cb(vsb_conn->disco_arg);
-		vsb_server_conn_list_remove(vsb_conn);
-		vsb_conn_destroy(vsb_conn);
-	} else {
-		printf("<--%s (%d)\n", (char *) buf, (int)rval);
-		if(vsb_frame_is_valid(buf, rval) == true) {
-			vsb_frame_t *frame = (vsb_frame_t *)buf;
-			vsb_server_broadcast_frame(vsb_server, frame);
+
+	while (1) {
+		if ((rval = read(vsb_conn->fd, buf, 64)) < 0) {
+			if (errno == EWOULDBLOCK) {
+				break;
+			}
+			perror("reading stream message");
+		} else if (rval == 0) { // close connection
+			close(vsb_conn->fd);
+			if (vsb_conn->disco_cb)
+				vsb_conn->disco_cb(vsb_conn->disco_arg);
+			vsb_server_conn_list_remove(vsb_conn);
+			vsb_conn_destroy(vsb_conn);
+			break;
+		} else { // get data
+			vsb_frame_t *frame = NULL;
+			vsb_frame_receiver_add_data(receiver, buf, (size_t) rval);
+
+			while ((frame = vsb_frame_receiver_parse_data(receiver)) != NULL) {
+				vsb_server_broadcast_frame(vsb_server, frame, vsb_conn_get_fd(vsb_conn));
+			}
 		}
 	}
 }
