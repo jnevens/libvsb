@@ -20,6 +20,12 @@ void handle_incoming_event(int fd, short revents, void *arg)
 	vsb_client_handle_incoming_event(vsb_client);
 }
 
+void handle_connection_disconnect(void *arg)
+{
+	fprintf(stderr, "Connection lost with server!\n");
+	exit(0);
+}
+
 void generate_data(void *arg)
 {
 	const char *data = (const char *) arg;
@@ -43,6 +49,7 @@ int main(int argc, char *argv[])
 	int vsb_client_fd = vsb_client_get_fd(vsb_client);
 	vsb_client_register_incoming_data_cb(vsb_client, incoming_data, (void *)"CLIENT");
 	evquick_addevent(vsb_client_fd, EVQUICK_EV_READ, handle_incoming_event, NULL, vsb_client);
+	vsb_client_register_disconnect_cb(vsb_client, handle_connection_disconnect, NULL);
 
 	// simulation of data to send
 	evquick_addtimer(1000, EVQUICK_EV_RETRIGGER, generate_data, argv[2]);
