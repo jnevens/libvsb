@@ -15,6 +15,7 @@ AC_INIT([libvsb],[dc_version])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
+AC_PREFIX_DEFAULT([/usr])
 # AC_PROG_RANLIB
 
 # Initialize automake.
