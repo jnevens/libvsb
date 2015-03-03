@@ -38,6 +38,8 @@ struct vsb_server_s
 	vsb_conn_t *connections[VSB_MAX_CONNECTIONS];
 	vsb_server_new_conn_cb_t new_conn_cb;
 	void *new_conn_cb_arg;
+	vsb_server_receive_data_cb_t recv_cb;
+	void *recv_arg;
 };
 
 vsb_conn_t *vsb_conn_init(vsb_server_t *vsb_server, int fd)
@@ -190,8 +192,24 @@ void vsb_server_handle_connection_event(vsb_conn_t *vsb_conn)
 			vsb_frame_receiver_add_data(receiver, buf, (size_t) rval);
 
 			while ((frame = vsb_frame_receiver_parse_data(receiver)) != NULL) {
+				if(vsb_server->recv_cb)
+					vsb_server->recv_cb(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), vsb_server->recv_arg);
 				vsb_server_broadcast_frame(vsb_server, frame, vsb_conn_get_fd(vsb_conn));
 			}
 		}
 	}
+}
+
+int vsb_server_send(vsb_server_t *vsb_server, void *data, size_t len)
+{
+	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
+	vsb_server_broadcast_frame(vsb_server, frame, 0);
+
+	return 0;
+}
+
+void vsb_server_register_receive_data_cb(vsb_server_t *vsb_server, vsb_server_receive_data_cb_t recv_cb, void *arg)
+{
+	vsb_server->recv_cb = recv_cb;
+	vsb_server->recv_arg = arg;
 }
