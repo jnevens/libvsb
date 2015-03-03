@@ -37,7 +37,7 @@ vsb_client_t *vsb_client_init(const char *path)
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0) {
 		perror("opening stream socket");
-		exit(1);
+		return NULL;
 	}
 	vsb_client = calloc(1, sizeof(vsb_client_t));
 	if (!vsb_client) {
@@ -54,8 +54,9 @@ vsb_client_t *vsb_client_init(const char *path)
 
 	if (connect(fd, (struct sockaddr *) &(vsb_client->server), sizeof(struct sockaddr_un)) < 0) {
 		close(fd);
+		free(vsb_client);
 		perror("connecting stream socket");
-		exit(1);
+		return NULL;
 	}
 
 	return vsb_client;
