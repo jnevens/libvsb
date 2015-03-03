@@ -1,11 +1,11 @@
 SUBDIRS = include src
 
 if ENABLE_EXAMPLES
-SUBDIRS += examples 
+SUBDIRS += libevquick examples
 endif
 
 if ENABLE_TOOLS
-SUBDIRS += tools
+SUBDIRS += libevquick tools
 endif
 
 # AM_MAKEFLAGS = -s

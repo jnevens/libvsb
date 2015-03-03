@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "libevquick.h"
+#include <libevquick.h>
 #include <libvsb/libvsb_client.h>
 
 vsb_client_t *vsb_client = NULL;

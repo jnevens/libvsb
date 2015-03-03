@@ -66,6 +66,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	tools/Makefile
 	examples/Makefile
+	libevquick/Makefile
 ])
 
 AC_OUTPUT
