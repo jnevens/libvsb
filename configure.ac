@@ -43,6 +43,15 @@ AC_ARG_ENABLE([examples],
 	[], [enable_examples=yes])
 AM_CONDITIONAL([ENABLE_EXAMPLES], [test "x$enable_examples" = "xyes"])
 
+AC_MSG_CHECKING([Don't build libevquick])
+AC_ARG_WITH(libevquick,
+    [  --with-libevquick           Do/Don't build libevquick],
+    with_libevquick=$withval,
+    with_libevquick=yes)
+AC_MSG_RESULT($with_libevquick)
+
+AM_CONDITIONAL([ENABLE_LIBEVQUICK], [test "x$with_libevquick" = "xyes"])
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CC_C99
