@@ -45,7 +45,7 @@ AM_CONDITIONAL([ENABLE_EXAMPLES], [test "x$enable_examples" = "xyes"])
 
 AC_MSG_CHECKING([Don't build libevquick])
 AC_ARG_WITH(libevquick,
-    [  --with-libevquick           Do/Don't build libevquick],
+    [  --with-libevquick       Do/Don't build libevquick @<:@default=yes@:>@],
     with_libevquick=$withval,
     with_libevquick=yes)
 AC_MSG_RESULT($with_libevquick)
