@@ -10,7 +10,7 @@ endif
 sbin_PROGRAMS = vsb-monitor vsb-send
 
 vsb_monitor_SOURCES = \
-	monitor.c
+	vsb-monitor.c
 
 vsb_send_SOURCES = \
 	vsb-send.c
