@@ -7,8 +7,11 @@ else
 LDADD += -levquick
 endif
 
-sbin_PROGRAMS = vsb-monitor
+sbin_PROGRAMS = vsb-monitor vsb-send
 
 vsb_monitor_SOURCES = \
 	monitor.c
+
+vsb_send_SOURCES = \
+	vsb-send.c
 

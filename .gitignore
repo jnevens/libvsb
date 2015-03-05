@@ -50,6 +50,7 @@ missing
 stamp-h1
 examples/client
 examples/server
+tools/vsb-send
 
 #eclipse
 .cproject
