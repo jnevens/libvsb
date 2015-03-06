@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
 	/* init vsb */
-	vsb_client = vsb_client_init(arguments.vsb_socket);
+	vsb_client = vsb_client_init(arguments.vsb_socket, "vsb-monitor");
 	if (!vsb_client) {
 		printf("error: problem initializing bus!\n");
 		exit(-1);

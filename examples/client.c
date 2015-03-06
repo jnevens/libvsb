@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	vsb_client = vsb_client_init(argv[1]);
+	vsb_client = vsb_client_init(argv[1], "example-client");
 	int vsb_client_fd = vsb_client_get_fd(vsb_client);
 	vsb_client_register_incoming_data_cb(vsb_client, incoming_data, NULL);
 	evquick_addevent(vsb_client_fd, EVQUICK_EV_READ, handle_incoming_event, NULL, vsb_client);

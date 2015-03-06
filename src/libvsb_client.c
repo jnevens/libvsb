@@ -20,6 +20,7 @@
 
 struct vsb_client_s
 {
+	char *name;
 	vsb_client_incoming_data_cb_t data_callback;
 	void *data_callback_arg;
 	vsb_client_disconnection_cb_t disco_callback;
@@ -29,7 +30,7 @@ struct vsb_client_s
 	int fd;
 };
 
-vsb_client_t *vsb_client_init(const char *path)
+vsb_client_t *vsb_client_init(const char *path, const char *name)
 {
 	int fd;
 	vsb_client_t *vsb_client = NULL;
@@ -42,6 +43,12 @@ vsb_client_t *vsb_client_init(const char *path)
 	vsb_client = calloc(1, sizeof(vsb_client_t));
 	if (!vsb_client) {
 		exit(ENOMEM);
+	}
+
+	if(name) {
+		vsb_client->name = strdup(name);
+		if(!vsb_client->name)
+			exit(ENOMEM);
 	}
 
 	// set socket non blocking
@@ -66,6 +73,7 @@ void vsb_client_close(vsb_client_t *vsb_client)
 {
 	vsb_frame_receiver_reset(&vsb_client->receiver);
 	close(vsb_client->fd);
+	free(vsb_client->name);
 	free(vsb_client);
 }
 

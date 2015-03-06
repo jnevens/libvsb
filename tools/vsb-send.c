@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	/* parse arguments */
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-	vsb_client = vsb_client_init(arguments.vsb_socket);
+	vsb_client = vsb_client_init(arguments.vsb_socket, "vsb-send");
 
 	rv = send_data(arguments.data, arguments.mode);
 
