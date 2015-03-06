@@ -8,7 +8,7 @@
 #ifndef INCLUDE_LIBVSB_SERVER_H_
 #define INCLUDE_LIBVSB_SERVER_H_
 
-#include "libvsb_frame.h"
+#include <libvsb/frame.h>
 
 typedef struct vsb_server_s vsb_server_t;
 typedef struct vsb_conn_s vsb_conn_t;

@@ -11,7 +11,7 @@
 #include <sys/time.h>
 
 #include <libevquick.h>
-#include <libvsb/libvsb_client.h>
+#include <libvsb/client.h>
 
 vsb_client_t *vsb_client = NULL;
 

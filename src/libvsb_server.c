@@ -15,8 +15,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include "libvsb/libvsb_server.h"
-#include "libvsb/libvsb_frame.h"
+#include "libvsb/server.h"
+#include "libvsb/frame.h"
 
 #define VSB_MAX_CONNECTIONS	20
 

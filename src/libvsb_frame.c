@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "libvsb/libvsb_frame.h"
+#include "libvsb/frame.h"
 
 struct vsb_frame_s
 {
