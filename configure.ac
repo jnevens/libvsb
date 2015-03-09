@@ -50,6 +50,15 @@ AC_ARG_WITH(libevquick,
     with_libevquick=yes)
 AC_MSG_RESULT($with_libevquick)
 
+# Tests
+AC_ARG_ENABLE([tests],
+	[AS_HELP_STRING([--enable-tests=@<:@yes/no@:>@],
+		[Build self tests @<:@default=no@:>@])],
+	[], [enable_tests=no])
+AM_CONDITIONAL([ENABLE_TESTS], [test "x$enable_tests" = "xyes"])
+
+AX_VALGRIND_CHECK
+
 AM_CONDITIONAL([ENABLE_LIBEVQUICK], [test "x$with_libevquick" = "xyes"])
 
 # Checks for programs.
@@ -77,6 +86,7 @@ AC_CONFIG_FILES([
 	tools/Makefile
 	examples/Makefile
 	libevquick/Makefile
+	tests/Makefile
 ])
 
 AC_OUTPUT

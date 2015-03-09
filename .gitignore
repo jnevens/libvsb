@@ -53,6 +53,12 @@ examples/server
 tools/vsb-send
 tools/vsb-monitor
 
-#eclipse
+# eclipse
 .cproject
 .project
+
+# tests
+tests/*.log
+test-driver
+tests/check_vsb
+tests/check_vsb.trs

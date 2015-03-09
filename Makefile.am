@@ -12,6 +12,10 @@ if ENABLE_TOOLS
 SUBDIRS += tools
 endif
 
+if ENABLE_TESTS
+SUBDIRS += tests
+endif
+
 # AM_MAKEFLAGS = -s
 ACLOCAL_AMFLAGS = -I m4
 
