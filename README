@@ -10,13 +10,13 @@ library and utilities:
   $ make
   $ make install
 
-If you downloaded the libdivecomputer source code directly from the git
+If you downloaded the libvsb source code directly from the git
 source code repository, then you need to create the configure script as
 the first step:
 
   $ autoreconf --install
 
-To uninstall libdivecomputer again, run:
+To uninstall libvsb again, run:
 
   $ make uninstall
 
