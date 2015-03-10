@@ -97,7 +97,6 @@ void vsb_client_register_disconnect_cb(vsb_client_t *vsb_client, vsb_client_disc
 
 void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 {
-
 	uint8_t buf[1024];
 	int rval;
 
@@ -120,6 +119,7 @@ void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 				if (vsb_client->data_callback) {
 					vsb_client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), vsb_client->data_callback_arg);
 				}
+				vsb_frame_destroy(frame);
 			}
 		}
 	}
