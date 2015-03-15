@@ -195,6 +195,7 @@ void vsb_server_handle_connection_event(vsb_conn_t *vsb_conn)
 				if(vsb_server->recv_cb)
 					vsb_server->recv_cb(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), vsb_server->recv_arg);
 				vsb_server_broadcast_frame(vsb_server, frame, vsb_conn_get_fd(vsb_conn));
+				vsb_frame_destroy(frame);
 			}
 		}
 	}
