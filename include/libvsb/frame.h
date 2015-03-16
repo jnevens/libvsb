@@ -15,7 +15,9 @@ typedef struct vsb_frame_s vsb_frame_t;
 
 typedef enum vsb_cmd_e
 {
-	VSB_CMD_DATA = 0
+	VSB_CMD_DATA = 0,
+	VSB_CMD_RQ_ID,
+	VSB_CMD_RP_ID
 } vsb_cmd_t;
 
 typedef struct
@@ -30,7 +32,10 @@ void vsb_frame_destroy(vsb_frame_t *frame);
 void *vsb_frame_get_data(vsb_frame_t *vsb_frame);
 size_t vsb_frame_get_datasize(vsb_frame_t *vsb_frame);
 size_t vsb_frame_get_framesize(vsb_frame_t *vsb_frame);
+vsb_cmd_t vsb_frame_get_cmd(vsb_frame_t *vsb_frame);
 bool vsb_frame_is_valid(uint8_t *data, size_t rlen);
+
+void vsb_frame_set_src(vsb_frame_t *vsb_frame, int src_id);
 
 void vsb_frame_receiver_add_data(vsb_frame_receiver_t *receiver, uint8_t *data, size_t len);
 vsb_frame_t *vsb_frame_receiver_parse_data(vsb_frame_receiver_t *receiver);

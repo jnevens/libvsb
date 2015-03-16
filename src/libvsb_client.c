@@ -15,20 +15,34 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define VSB_MAX_CONNECTIONS 20
+
 #include "libvsb/client.h"
 #include "libvsb/frame.h"
+
+struct vsb_client_id_name
+{
+	char *name;
+	int id;
+};
 
 struct vsb_client_s
 {
 	char *name;
+	int id;
 	vsb_client_incoming_data_cb_t data_callback;
 	void *data_callback_arg;
 	vsb_client_disconnection_cb_t disco_callback;
 	void *disco_callback_arg;
 	vsb_frame_receiver_t receiver;
 	struct sockaddr_un server;
+	struct vsb_client_id_name client_id_lookup_table[VSB_MAX_CONNECTIONS];
 	int fd;
 };
+
+/* static function declarations */
+static int vsb_client_send_frame(vsb_client_t *client, vsb_frame_t *frame);
+static void vsb_client_request_id(vsb_client_t *client);
 
 vsb_client_t *vsb_client_init(const char *path, const char *name)
 {
@@ -45,9 +59,9 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 		exit(ENOMEM);
 	}
 
-	if(name) {
+	if (name) {
 		vsb_client->name = strdup(name);
-		if(!vsb_client->name)
+		if (!vsb_client->name)
 			exit(ENOMEM);
 	}
 
@@ -66,7 +80,18 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 		return NULL;
 	}
 
+	vsb_client_request_id(vsb_client);
+
 	return vsb_client;
+}
+
+static void vsb_client_request_id(vsb_client_t *client)
+{
+	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_RQ_ID, (uint8_t *) client->name, strlen(client->name) + 1);
+
+	vsb_client_send_frame(client, frame);
+
+	vsb_frame_destroy(frame);
 }
 
 void vsb_client_close(vsb_client_t *vsb_client)
@@ -95,6 +120,28 @@ void vsb_client_register_disconnect_cb(vsb_client_t *vsb_client, vsb_client_disc
 	vsb_client->disco_callback_arg = arg;
 }
 
+void vsb_client_handle_incoming_frame(vsb_client_t *vsb_client, vsb_frame_t *frame)
+{
+	switch (vsb_frame_get_cmd(frame)) {
+	case VSB_CMD_DATA: {
+		if (vsb_client->data_callback) {
+			vsb_client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame),
+					vsb_client->data_callback_arg);
+		}
+		break;
+	}
+	case VSB_CMD_RP_ID: {
+		int id = *(int *)vsb_frame_get_data(frame);
+		vsb_client->id = id;
+		printf("Client received id: %d\n", id);
+		break;
+	}
+	default:
+		fprintf(stderr, "Cannot handle frame with this command!\n");
+		break;
+	}
+}
+
 void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 {
 	uint8_t buf[1024];
@@ -108,7 +155,7 @@ void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 			perror("reading stream message");
 		} else if (rval == 0) { // close connection
 			close(vsb_client->fd);
-			if(vsb_client->disco_callback)
+			if (vsb_client->disco_callback)
 				vsb_client->disco_callback(vsb_client->disco_callback_arg);
 			break;
 		} else { // get data
@@ -116,9 +163,7 @@ void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 			vsb_frame_receiver_add_data(&vsb_client->receiver, buf, (size_t) rval);
 
 			while ((frame = vsb_frame_receiver_parse_data(&vsb_client->receiver)) != NULL) {
-				if (vsb_client->data_callback) {
-					vsb_client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), vsb_client->data_callback_arg);
-				}
+				vsb_client_handle_incoming_frame(vsb_client, frame);
 				vsb_frame_destroy(frame);
 			}
 		}
@@ -127,13 +172,22 @@ void vsb_client_handle_incoming_event(vsb_client_t *vsb_client)
 
 int vsb_client_send_data(vsb_client_t *vsb_client, void *data, size_t len)
 {
+	int rv = -1;
 	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
-
-	if (write(vsb_client->fd, frame, vsb_frame_get_framesize(frame)) < 0)
-		perror("writing on stream socket");
-
+	rv = vsb_client_send_frame(vsb_client, frame);
 	vsb_frame_destroy(frame);
 
+	return rv;
+}
+
+static int vsb_client_send_frame(vsb_client_t *client, vsb_frame_t *frame)
+{
+	vsb_frame_set_src(frame, client->id);
+	size_t frame_len = vsb_frame_get_framesize(frame);
+	if (write(client->fd, frame, frame_len) != frame_len) {
+		perror("writing on stream socket");
+		return -1;
+	}
 	return 0;
 }
 
