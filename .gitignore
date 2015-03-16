@@ -61,4 +61,6 @@ tools/vsb-monitor
 tests/*.log
 test-driver
 tests/check_vsb
-tests/check_vsb.trs
+check_frame
+tests/*.trs
+
