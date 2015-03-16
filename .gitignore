@@ -64,3 +64,8 @@ tests/check_vsb
 check_frame
 tests/*.trs
 
+#coverage
+coverage.info
+coverage
+*.gcno
+*.gcov

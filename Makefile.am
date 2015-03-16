@@ -24,3 +24,5 @@ pkgconfig_DATA = libvsb.pc
 
 EXTRA_DIST = \
 	libvsb.pc.in
+
+include Makefile.am.coverage

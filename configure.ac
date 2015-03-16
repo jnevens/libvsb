@@ -19,7 +19,7 @@ AC_PREFIX_DEFAULT([/usr])
 # AC_PROG_RANLIB
 
 # Initialize automake.
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign])
 
 # Fix for automake >= 1.12
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -64,6 +64,14 @@ AM_CONDITIONAL([ENABLE_LIBEVQUICK], [test "x$with_libevquick" = "xyes"])
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CC_C99
+
+# gcov coverage reporting
+
+m4_include([m4/gcov.m4])
+AC_TDD_GCOV
+AC_SUBST(COVERAGE_CFLAGS)
+AC_SUBST(COVERAGE_CXXFLAGS)
+AC_SUBST(COVERAGE_LDFLAGS)
 
 # Versioning.
 AC_SUBST([DC_VERSION],[dc_version])
