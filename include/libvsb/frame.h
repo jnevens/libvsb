@@ -35,6 +35,7 @@ void *vsb_frame_get_data(vsb_frame_t *vsb_frame);
 size_t vsb_frame_get_datasize(vsb_frame_t *vsb_frame);
 size_t vsb_frame_get_framesize(vsb_frame_t *vsb_frame);
 vsb_cmd_t vsb_frame_get_cmd(vsb_frame_t *vsb_frame);
+int vsb_frame_get_src(vsb_frame_t *vsb_frame);
 bool vsb_frame_is_valid(uint8_t *data, size_t rlen);
 
 void vsb_frame_set_src(vsb_frame_t *vsb_frame, int src_id);

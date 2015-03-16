@@ -46,6 +46,11 @@ vsb_cmd_t vsb_frame_get_cmd(vsb_frame_t *vsb_frame)
 	return vsb_frame->cmd;
 }
 
+int vsb_frame_get_src(vsb_frame_t *vsb_frame)
+{
+	return vsb_frame->src;
+}
+
 size_t vsb_frame_get_framesize(vsb_frame_t *vsb_frame)
 {
 	return sizeof(vsb_frame_t) + vsb_frame->len;
