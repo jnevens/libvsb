@@ -136,6 +136,9 @@ void vsb_client_handle_incoming_frame(vsb_client_t *vsb_client, vsb_frame_t *fra
 		printf("Client received id: %d\n", id);
 		break;
 	}
+	case VSB_CMD_RP_CONN_NAME: {
+		break;
+	}
 	default:
 		fprintf(stderr, "Cannot handle frame with this command!\n");
 		break;

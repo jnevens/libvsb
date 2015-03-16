@@ -17,7 +17,9 @@ typedef enum vsb_cmd_e
 {
 	VSB_CMD_DATA = 0,
 	VSB_CMD_RQ_ID,
-	VSB_CMD_RP_ID
+	VSB_CMD_RP_ID,
+	VSB_CMD_RQ_CONN_NAME,
+	VSB_CMD_RP_CONN_NAME
 } vsb_cmd_t;
 
 typedef struct
