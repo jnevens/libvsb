@@ -13,7 +13,6 @@ START_TEST(test_vsb_server_create_destroy)
 		vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
 		ck_assert_ptr_ne(server, NULL);
 		vsb_server_close(server);
-
 	}END_TEST
 
 START_TEST(test_vsb_client_create_destroy)
