@@ -7,6 +7,9 @@ libvsb_la_LIBADD =
 libvsb_la_LDFLAGS =
 
 libvsb_la_SOURCES = \
-	libvsb_client.c \
-	libvsb_server.c \
-	libvsb_frame.c
+	client.c \
+	server.c \
+	frame.c \
+	frame_receiver.c \
+	connection.c \
+	connection_list.c

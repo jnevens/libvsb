@@ -69,3 +69,7 @@ coverage.info
 coverage
 *.gcno
 *.gcov
+tests/check_connection
+tests/check_connection_list
+tests/*.gcda
+tests/check_frame_receiver
