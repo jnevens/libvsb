@@ -191,6 +191,7 @@ int vsb_server_send(vsb_server_t *server, void *data, size_t len)
 {
 	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
 	vsb_server_broadcast_frame(server, frame, 0);
+	vsb_frame_destroy(frame);
 
 	return 0;
 }
