@@ -22,8 +22,6 @@ typedef enum vsb_cmd_e
 	VSB_CMD_RP_CONN_NAME
 } vsb_cmd_t;
 
-
-
 vsb_frame_t *vsb_frame_create(vsb_cmd_t cmd, void *data, size_t len);
 void vsb_frame_destroy(vsb_frame_t *frame);
 
@@ -36,6 +34,6 @@ bool vsb_frame_is_valid(uint8_t *data, size_t rlen);
 
 void vsb_frame_set_src(vsb_frame_t *vsb_frame, int src_id);
 
-
+const char *vsb_frame_cmd_to_string(vsb_cmd_t cmd);
 
 #endif /* INCLUDE_LIBVSB_FRAME_H_ */

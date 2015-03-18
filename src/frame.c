@@ -13,6 +13,14 @@
 
 #include "libvsb/frame.h"
 
+static const char *cmd_str[] = {
+		"DATA",
+		"RQ_ID",
+		"RP_ID",
+		"RQ_CONN_NAME",
+		"RP_CONN_NAME"
+};
+
 struct vsb_frame_s
 {
 	uint32_t len;
@@ -81,4 +89,9 @@ bool vsb_frame_is_valid(uint8_t *data, size_t rlen)
 
 	is_valid = true;
 	end: return is_valid;
+}
+
+const char *vsb_frame_cmd_to_string(vsb_cmd_t cmd)
+{
+	return cmd_str[cmd];
 }

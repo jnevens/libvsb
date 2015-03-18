@@ -44,8 +44,7 @@ void vsb_server_broadcast_frame(vsb_server_t *server, vsb_frame_t *frame, int fr
 	vsb_conn_list_iter_t *iter = vsb_conn_list_iter_create(vsb_server_get_conn_list(server));
 	while ((conn = vsb_conn_list_iter_next(iter)) != NULL) {
 		if (vsb_conn_get_fd(conn) != from_fd) {
-			if (vsb_server_send_frame(conn, frame) <= 0)
-				perror("writing on stream socket");
+			vsb_server_send_frame(conn, frame);
 		}
 	}
 	vsb_conn_list_iter_destroy(iter);
@@ -125,15 +124,13 @@ static void vsb_server_handle_rq_id_frame(vsb_conn_t *conn, vsb_frame_t *frame)
 	vsb_conn_set_name(conn, (char *) vsb_frame_get_data(frame));
 	int conn_id = vsb_conn_get_fd(conn);
 	vsb_frame_t *frame_rp = vsb_frame_create(VSB_CMD_RP_ID, (void *) &conn_id, sizeof(int));
-	if (vsb_server_send_frame(conn, frame_rp) <= 0) {
-		perror("Writing to client socket");
-	}
+	vsb_server_send_frame(conn, frame_rp);
 	vsb_frame_destroy(frame_rp);
 }
 
 static void vsb_server_handle_rq_conn_name(vsb_conn_t *conn, vsb_frame_t *frame)
 {
-
+	// TODO
 }
 
 static void vsb_server_handle_incoming_frame(vsb_conn_t *conn, vsb_frame_t *frame)

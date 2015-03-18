@@ -15,7 +15,6 @@ static evquick_event *server_event = NULL;
 
 void incoming_connection_callback(int fd, short revents, void *arg)
 {
-	printf("%s: %d\n", __func__, __LINE__);
 	vsb_conn_t *vsb_conn = (vsb_conn_t *) arg;
 
 	vsb_server_handle_connection_event(vsb_conn);
