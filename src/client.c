@@ -108,6 +108,12 @@ int vsb_client_get_fd(vsb_client_t *client)
 	return client->fd;
 }
 
+int vsb_client_get_id(vsb_client_t *client)
+{
+	return client->id;
+}
+
+
 void vsb_client_register_incoming_data_cb(vsb_client_t *client, vsb_client_incoming_data_cb_t data_callback,
 		void *arg)
 {
