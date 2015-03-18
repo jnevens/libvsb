@@ -72,6 +72,16 @@ START_TEST(test_frame_invalid_1_byte_missing)
 }
 END_TEST
 
+START_TEST(test_frame_cmd_to_string)
+{
+	ck_assert_str_eq(vsb_frame_cmd_to_string(VSB_CMD_DATA), "DATA");
+	ck_assert_str_eq(vsb_frame_cmd_to_string(VSB_CMD_RQ_ID), "RQ_ID");
+	ck_assert_str_eq(vsb_frame_cmd_to_string(VSB_CMD_RP_ID), "RP_ID");
+	ck_assert_str_eq(vsb_frame_cmd_to_string(VSB_CMD_RQ_CONN_NAME), "RQ_CONN_NAME");
+	ck_assert_str_eq(vsb_frame_cmd_to_string(VSB_CMD_RP_CONN_NAME), "RP_CONN_NAME");
+}
+END_TEST
+
 Suite * vsb_suite(void)
 {
 	Suite *s;
@@ -89,6 +99,7 @@ Suite * vsb_suite(void)
 	tcase_add_test(tc_core, test_frame_valid);
 	tcase_add_test(tc_core, test_frame_invalid_incomplete);
 	tcase_add_test(tc_core, test_frame_invalid_1_byte_missing);
+	tcase_add_test(tc_core, test_frame_cmd_to_string);
 	suite_add_tcase(s, tc_core);
 
 	return s;
