@@ -48,6 +48,7 @@ void vsb_conn_disconnect(vsb_conn_t *conn)
 
 void vsb_conn_destroy(vsb_conn_t *conn)
 {
+	vsb_conn_disconnect(conn);
 	vsb_frame_receiver_reset(&conn->receiver);
 	free(conn->client_name);
 	free(conn);
