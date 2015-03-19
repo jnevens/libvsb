@@ -142,6 +142,37 @@ START_TEST(test_client_disconnect)
 
 	vsb_server_close(server);
 	client_connection_cd = NULL;
+	client_disconnected_flag = false;
+}END_TEST
+
+static bool server_disconnected_flag = false;
+static void server_disconnected_cb(void *arg)
+{
+	server_disconnected_flag = true;
+}
+
+START_TEST(test_server_disconnect)
+{
+	printf("Problematic test start!\n");
+	unlink(tmp_vsb_socket);
+	vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
+	vsb_server_register_new_connection_cb(server, new_conn_cb, NULL);
+	vsb_client_t *client = vsb_client_init(tmp_vsb_socket, "name");
+	vsb_client_register_incoming_data_cb(client, client_incoming_data_cb, NULL);
+	vsb_client_register_disconnect_cb(client, server_disconnected_cb ,NULL);
+	vsb_server_handle_server_event(server);
+	vsb_server_handle_connection_event(client_connection);
+	vsb_client_handle_incoming_event(client);
+	ck_assert_int_eq(vsb_client_get_id(client), vsb_conn_get_fd(client_connection));
+
+	ck_assert_int_eq(server_disconnected_flag, 0);
+	vsb_server_close(server);
+	vsb_client_handle_incoming_event(client);
+	ck_assert_int_eq(server_disconnected_flag, 1);
+
+	vsb_client_close(client);
+	client_connection = NULL;
+	server_disconnected_flag = false;
 }END_TEST
 
 Suite * vsb_suite(void)
@@ -160,6 +191,7 @@ Suite * vsb_suite(void)
 	tcase_add_test(tc_core, test_vsb_client_send_data);
 	tcase_add_test(tc_core, test_vsb_server_send_data);
 	tcase_add_test(tc_core, test_client_disconnect);
+	tcase_add_test(tc_core, test_server_disconnect);
 	suite_add_tcase(s, tc_core);
 
 	return s;
