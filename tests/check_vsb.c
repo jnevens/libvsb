@@ -1,5 +1,6 @@
 #include <check.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include "../include/libvsb/server.h"
@@ -108,6 +109,41 @@ START_TEST(test_vsb_server_send_data)
 }END_TEST
 
 
+bool client_disconnected_flag = false;
+static void client_disconnected_cb(void *arg)
+{
+	client_disconnected_flag = true;
+}
+
+static vsb_conn_t *client_connection_cd = NULL;
+static void new_conn_cb_cd(vsb_conn_t *vsb_conn, void *arg)
+{
+	client_connection_cd = vsb_conn;
+	vsb_conn_register_disconnect_cb(vsb_conn, client_disconnected_cb, NULL);
+}
+
+START_TEST(test_client_disconnect)
+{
+	unlink(tmp_vsb_socket);
+	ck_assert_int_eq(client_disconnected_flag, 0);
+	vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
+	vsb_server_register_new_connection_cb(server, new_conn_cb_cd, NULL);
+	vsb_client_t *client = vsb_client_init(tmp_vsb_socket, "name");
+	vsb_client_register_incoming_data_cb(client, client_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	ck_assert_int_eq(client_disconnected_flag, 0);
+	vsb_server_handle_connection_event(client_connection_cd);
+	vsb_client_handle_incoming_event(client);
+	ck_assert_int_eq(vsb_client_get_id(client), vsb_conn_get_fd(client_connection_cd));
+
+	vsb_client_close(client);
+	vsb_server_handle_connection_event(client_connection_cd);
+	ck_assert_int_eq(client_disconnected_flag, 1);
+
+	vsb_server_close(server);
+	client_connection_cd = NULL;
+}END_TEST
+
 Suite * vsb_suite(void)
 {
 	Suite *s;
@@ -123,6 +159,7 @@ Suite * vsb_suite(void)
 	tcase_add_test(tc_core, test_vsb_client_get_id);
 	tcase_add_test(tc_core, test_vsb_client_send_data);
 	tcase_add_test(tc_core, test_vsb_server_send_data);
+	tcase_add_test(tc_core, test_client_disconnect);
 	suite_add_tcase(s, tc_core);
 
 	return s;
