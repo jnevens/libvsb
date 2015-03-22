@@ -30,7 +30,7 @@ struct arguments arguments = { .mode = MODE_HEX };
 static char doc[] = "vsb-monitor, a tool to monitor a virtual serial bus.";
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "VSB-SOCKET";
+static char args_doc[] = "vsb-socket data";
 
 /* The options we understand. */
 static struct argp_option options[] = { { "data-text", 't', 0, 0, "Data as text" }, { "data-hex", 'h', 0, 0,
