@@ -43,7 +43,6 @@ struct vsb_client_s
 
 /* static function declarations */
 static int vsb_client_send_frame(vsb_client_t *client, vsb_frame_t *frame);
-static void vsb_client_request_id(vsb_client_t *client);
 
 vsb_client_t *vsb_client_init(const char *path, const char *name)
 {
@@ -81,18 +80,7 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 		return NULL;
 	}
 
-	vsb_client_request_id(client);
-
 	return client;
-}
-
-static void vsb_client_request_id(vsb_client_t *client)
-{
-	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_RQ_ID, (uint8_t *) client->name, strlen(client->name) + 1);
-
-	vsb_client_send_frame(client, frame);
-
-	vsb_frame_destroy(frame);
 }
 
 void vsb_client_close(vsb_client_t *client)
@@ -135,15 +123,6 @@ void vsb_client_handle_incoming_frame(vsb_client_t *client, vsb_frame_t *frame)
 			client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame),
 					client->data_callback_arg);
 		}
-		break;
-	}
-	case VSB_CMD_RP_ID: {
-		int id = *(int *)vsb_frame_get_data(frame);
-		client->id = id;
-		printf("Client received id: %d\n", id);
-		break;
-	}
-	case VSB_CMD_RP_CONN_NAME: {
 		break;
 	}
 	default:

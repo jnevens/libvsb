@@ -119,20 +119,6 @@ void vsb_server_handle_server_event(vsb_server_t *server)
 	}
 }
 
-static void vsb_server_handle_rq_id_frame(vsb_conn_t *conn, vsb_frame_t *frame)
-{
-	vsb_conn_set_name(conn, (char *) vsb_frame_get_data(frame));
-	int conn_id = vsb_conn_get_fd(conn);
-	vsb_frame_t *frame_rp = vsb_frame_create(VSB_CMD_RP_ID, (void *) &conn_id, sizeof(int));
-	vsb_server_send_frame(conn, frame_rp);
-	vsb_frame_destroy(frame_rp);
-}
-
-static void vsb_server_handle_rq_conn_name(vsb_conn_t *conn, vsb_frame_t *frame)
-{
-	// TODO
-}
-
 static void vsb_server_handle_incoming_frame(vsb_conn_t *conn, vsb_frame_t *frame)
 {
 	vsb_server_t *server = (vsb_server_t *) vsb_conn_get_arg(conn);
@@ -142,12 +128,6 @@ static void vsb_server_handle_incoming_frame(vsb_conn_t *conn, vsb_frame_t *fram
 		if (server->recv_cb)
 			server->recv_cb(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), server->recv_arg);
 		vsb_server_broadcast_frame(server, frame, vsb_conn_get_fd(conn));
-		break;
-	case VSB_CMD_RQ_ID:
-		vsb_server_handle_rq_id_frame(conn, frame);
-		break;
-	case VSB_CMD_RQ_CONN_NAME:
-		vsb_server_handle_rq_conn_name(conn, frame);
 		break;
 	default:
 		fprintf(stderr, "Cannot handle frame with this command!\n");
@@ -180,6 +160,7 @@ void vsb_server_handle_connection_event(vsb_conn_t *conn)
 			vsb_frame_receiver_add_data(receiver, buf, (size_t) rval);
 
 			while ((frame = vsb_frame_receiver_parse_data(receiver)) != NULL) {
+				vsb_frame_set_src(frame, vsb_conn_get_fd(conn));
 				vsb_server_handle_incoming_frame(conn, frame);
 				vsb_frame_destroy(frame);
 			}
