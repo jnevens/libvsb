@@ -151,7 +151,6 @@ void vsb_server_handle_connection_event(vsb_conn_t *conn)
 			}
 			perror("reading stream message");
 		} else if (rval == 0) { // close connection
-			vsb_conn_disconnect(conn);
 			vsb_conn_list_remove(vsb_server_get_conn_list(server), conn);
 			vsb_conn_destroy(conn);
 			break;
