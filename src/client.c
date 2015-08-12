@@ -137,7 +137,7 @@ void vsb_client_handle_incoming_event(vsb_client_t *client)
 	int rval;
 
 	while (1) {
-		if ((rval = read(client->fd, buf, 1024)) < 0) {
+		if ((rval = read(client->fd, buf, sizeof(buf))) < 0) {
 			if (errno == EWOULDBLOCK) {
 				break;
 			}

@@ -145,7 +145,7 @@ void vsb_server_handle_connection_event(vsb_conn_t *conn)
 	bzero(buf, sizeof(buf));
 
 	while (1) {
-		if ((rval = read(vsb_conn_get_fd(conn), buf, 64)) < 0) {
+		if ((rval = read(vsb_conn_get_fd(conn), buf, sizeof(buf))) < 0) {
 			if (errno == EWOULDBLOCK) {
 				break;
 			}
