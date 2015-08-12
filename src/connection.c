@@ -41,9 +41,9 @@ vsb_conn_t *vsb_conn_init(int fd, void *arg)
 
 void vsb_conn_disconnect(vsb_conn_t *conn)
 {
-	close(conn->fd);
 	if (conn->disco_cb)
 		conn->disco_cb(conn->disco_arg);
+	close(conn->fd);
 }
 
 void vsb_conn_destroy(vsb_conn_t *conn)
