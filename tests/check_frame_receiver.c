@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "../include/libvsb/frame.h"
+#include "../src/frame.h"
 #include "../src/frame_receiver.h"
 
 START_TEST(test_framereceiver_msg_in_2_parts)

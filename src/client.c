@@ -18,7 +18,7 @@
 #define VSB_MAX_CONNECTIONS 20
 
 #include "libvsb/client.h"
-#include "libvsb/frame.h"
+#include "frame.h"
 #include "frame_receiver.h"
 
 struct vsb_client_id_name

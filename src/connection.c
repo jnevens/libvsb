@@ -16,8 +16,8 @@
 #include <fcntl.h>
 
 #include "libvsb/server.h"
-#include "libvsb/frame.h"
 #include "libvsb/connection.h"
+#include "frame.h"
 #include "frame_receiver.h"
 #include "connection.h"
 

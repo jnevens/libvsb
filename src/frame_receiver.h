@@ -8,7 +8,7 @@
 #ifndef SRC_FRAME_RECEIVER_H_
 #define SRC_FRAME_RECEIVER_H_
 
-#include <libvsb/frame.h>
+#include "frame.h"
 
 typedef struct
 {

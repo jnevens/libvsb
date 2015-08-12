@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "libvsb/frame.h"
+#include "frame.h"
 
 static const char *cmd_str[] = {
 		"DATA",

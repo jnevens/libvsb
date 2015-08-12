@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "libvsb/frame.h"
+#include "frame.h"
 #include "frame_receiver.h"
 
 void vsb_frame_receiver_add_data(vsb_frame_receiver_t *receiver, uint8_t *data, size_t len)
