@@ -33,9 +33,8 @@ struct vsb_server_s
 	void *new_conn_cb_arg;
 	vsb_server_receive_data_cb_t recv_cb;
 	void *recv_arg;
+	bool auto_broadcast;
 };
-
-static bool auto_broadcast = true;
 
 /* static function declarations */
 static int vsb_server_send_frame(vsb_conn_t *conn, vsb_frame_t *frame);
@@ -76,6 +75,7 @@ vsb_server_t *vsb_server_init(const char *path)
 	}
 
 	server->conn_list = vsb_conn_list_create();
+	server->auto_broadcast = true;
 
 	listen(fd, 5);
 	server->server_fd = fd;
@@ -130,7 +130,7 @@ static void vsb_server_handle_incoming_frame(vsb_conn_t *conn, vsb_frame_t *fram
 	case VSB_CMD_DATA:
 		if (server->recv_cb)
 			server->recv_cb(conn, vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), server->recv_arg);
-		if (auto_broadcast)
+		if (server->auto_broadcast)
 			vsb_server_broadcast_frame(server, frame, vsb_conn_get_fd(conn));
 		break;
 	default:
@@ -173,7 +173,7 @@ void vsb_server_handle_connection_event(vsb_conn_t *conn)
 
 void vsb_server_set_auto_broadcast(vsb_server_t *vsb_server, bool value)
 {
-	auto_broadcast = value;
+	vsb_server->auto_broadcast = value;
 }
 
 int vsb_server_send(vsb_server_t *vsb_server, void *data, size_t len)
