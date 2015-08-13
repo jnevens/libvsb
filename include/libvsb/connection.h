@@ -10,7 +10,7 @@
 
 typedef struct vsb_conn_s vsb_conn_t;
 
-typedef void (*vsb_server_conn_disconnection_cb_t)(void *arg);
+typedef void (*vsb_server_conn_disconnection_cb_t)(vsb_conn_t *conn, void *arg);
 
 vsb_conn_t *vsb_conn_init(int fd, void *arg);
 void vsb_conn_disconnect(vsb_conn_t *conn);

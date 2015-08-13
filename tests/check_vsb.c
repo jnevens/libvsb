@@ -1,6 +1,7 @@
 #include <check.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include "../include/libvsb/server.h"
@@ -34,9 +35,11 @@ static void new_conn_cb(vsb_conn_t *vsb_conn, void *arg)
 	client_connection = vsb_conn;
 }
 
+static vsb_conn_t *server_incoming_conn = NULL;
 static char *server_incoming_data = NULL;
-static void server_incoming_data_cb(void *data, size_t len, void *arg)
+static void server_incoming_data_cb(vsb_conn_t *vsb_conn, void *data, size_t len, void *arg)
 {
+	server_incoming_conn = vsb_conn;
 	server_incoming_data = strdup((char *)data);
 }
 
@@ -53,6 +56,7 @@ START_TEST(test_vsb_client_send_data)
 	ck_assert_int_eq(1,1);
 	vsb_server_handle_connection_event(client_connection);
 	ck_assert_int_eq(1,1);
+	ck_assert_ptr_eq(server_incoming_conn, client_connection);
 	ck_assert_str_eq(server_incoming_data, "foobar");
 	ck_assert_int_eq(1,1);
 
@@ -90,9 +94,96 @@ START_TEST(test_vsb_server_send_data)
 	client_connection = NULL;
 }END_TEST
 
+static char *client2_incoming_data = NULL;
+static void client2_incoming_data_cb(void *data, size_t len, void *arg)
+{
+	fprintf(stderr, "c2\n");
+	client2_incoming_data = strdup((char *)data);
+}
+
+START_TEST(test_vsb_server_auto_broadcast_enabled)
+{
+	unlink(tmp_vsb_socket);
+	vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
+	vsb_server_register_new_connection_cb(server, new_conn_cb, NULL);
+	vsb_client_t *client1 = vsb_client_init(tmp_vsb_socket, "name1");
+	vsb_client_register_incoming_data_cb(client1, client_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	vsb_client_t *client2 = vsb_client_init(tmp_vsb_socket, "name2");
+	vsb_client_register_incoming_data_cb(client2, client2_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	
+	vsb_client_send_data(client2, "foobar", 7);
+	vsb_server_handle_connection_event(client_connection);
+	vsb_client_handle_incoming_event(client1);
+	vsb_client_handle_incoming_event(client2);
+	ck_assert_ptr_ne(client_incoming_data, NULL);
+	ck_assert_str_eq(client_incoming_data, "foobar");
+	ck_assert_ptr_eq(client2_incoming_data, NULL);
+	
+	vsb_client_close(client2);
+	vsb_client_close(client1);
+	vsb_server_close(server);
+	free(client_incoming_data);
+	client_incoming_data = NULL;
+	client_connection = NULL;
+}END_TEST
+
+START_TEST(test_vsb_server_auto_broadcast_disabled)
+{
+	unlink(tmp_vsb_socket);
+	vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
+	vsb_server_set_auto_broadcast(server, false);
+	vsb_server_register_new_connection_cb(server, new_conn_cb, NULL);
+	vsb_client_t *client1 = vsb_client_init(tmp_vsb_socket, "name1");
+	vsb_client_register_incoming_data_cb(client1, client_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	vsb_client_t *client2 = vsb_client_init(tmp_vsb_socket, "name2");
+	vsb_client_register_incoming_data_cb(client2, client2_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	
+	vsb_client_send_data(client2, "foobar", 7);
+	vsb_server_handle_connection_event(client_connection);
+	vsb_client_handle_incoming_event(client1);
+	vsb_client_handle_incoming_event(client2);
+	ck_assert_ptr_eq(client_incoming_data, NULL);
+	ck_assert_ptr_eq(client2_incoming_data, NULL);
+	
+	vsb_client_close(client2);
+	vsb_client_close(client1);
+	vsb_server_close(server);
+	client_connection = NULL;
+}END_TEST
+
+START_TEST(test_vsb_server_broadcast)
+{
+	unlink(tmp_vsb_socket);
+	vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
+	vsb_server_register_new_connection_cb(server, new_conn_cb, NULL);
+	vsb_client_t *client1 = vsb_client_init(tmp_vsb_socket, "name1");
+	vsb_client_register_incoming_data_cb(client1, client_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	vsb_client_t *client2 = vsb_client_init(tmp_vsb_socket, "name2");
+	vsb_client_register_incoming_data_cb(client2, client2_incoming_data_cb, NULL);
+	vsb_server_handle_server_event(server);
+	
+	vsb_server_broadcast(server, "foobar", 7, client_connection);
+	vsb_client_handle_incoming_event(client1);
+	vsb_client_handle_incoming_event(client2);
+	ck_assert_ptr_eq(client2_incoming_data, NULL);
+	ck_assert_ptr_ne(client_incoming_data, NULL);
+	ck_assert_str_eq(client_incoming_data, "foobar");
+	
+	vsb_client_close(client2);
+	vsb_client_close(client1);
+	vsb_server_close(server);
+	free(client_incoming_data);
+	client_incoming_data = NULL;
+	client_connection = NULL;
+}END_TEST
 
 bool client_disconnected_flag = false;
-static void client_disconnected_cb(void *arg)
+static void client_disconnected_cb(vsb_conn_t *conn, void *arg)
 {
 	client_disconnected_flag = true;
 }
@@ -164,6 +255,9 @@ Suite * vsb_suite(void)
 	tcase_add_test(tc_core, test_vsb_client_create_destroy);
 	tcase_add_test(tc_core, test_vsb_client_send_data);
 	tcase_add_test(tc_core, test_vsb_server_send_data);
+	tcase_add_test(tc_core, test_vsb_server_auto_broadcast_enabled);
+	tcase_add_test(tc_core, test_vsb_server_auto_broadcast_disabled);
+	tcase_add_test(tc_core, test_vsb_server_broadcast);
 	tcase_add_test(tc_core, test_client_disconnect);
 	tcase_add_test(tc_core, test_server_disconnect);
 	suite_add_tcase(s, tc_core);

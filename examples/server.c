@@ -27,7 +27,7 @@ void incoming_vsb_server_event(int fd, short revents, void *arg)
 	vsb_server_handle_server_event(vsb_server);
 }
 
-void connection_disconnect_callback(void *arg)
+void connection_disconnect_callback(vsb_conn_t *conn, void *arg)
 {
 	evquick_event *event = (evquick_event *)arg;
 	fprintf(stderr, "Disconnecting client! (fd = %d)\n", event->fd);
