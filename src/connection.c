@@ -42,7 +42,7 @@ vsb_conn_t *vsb_conn_init(int fd, void *arg)
 void vsb_conn_disconnect(vsb_conn_t *conn)
 {
 	if (conn->disco_cb)
-		conn->disco_cb(conn->disco_arg);
+		conn->disco_cb(conn, conn->disco_arg);
 	close(conn->fd);
 }
 

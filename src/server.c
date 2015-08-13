@@ -35,8 +35,11 @@ struct vsb_server_s
 	void *recv_arg;
 };
 
+static bool auto_broadcast = true;
+
 /* static function declarations */
 static int vsb_server_send_frame(vsb_conn_t *conn, vsb_frame_t *frame);
+static void vsb_server_broadcast_data(vsb_server_t *server, void *data, size_t len, int from_fd);
 
 void vsb_server_broadcast_frame(vsb_server_t *server, vsb_frame_t *frame, int from_fd)
 {
@@ -126,8 +129,9 @@ static void vsb_server_handle_incoming_frame(vsb_conn_t *conn, vsb_frame_t *fram
 	switch (vsb_frame_get_cmd(frame)) {
 	case VSB_CMD_DATA:
 		if (server->recv_cb)
-			server->recv_cb(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), server->recv_arg);
-		vsb_server_broadcast_frame(server, frame, vsb_conn_get_fd(conn));
+			server->recv_cb(conn, vsb_frame_get_data(frame), vsb_frame_get_datasize(frame), server->recv_arg);
+		if (auto_broadcast)
+			vsb_server_broadcast_frame(server, frame, vsb_conn_get_fd(conn));
 		break;
 	default:
 		fprintf(stderr, "Cannot handle frame with this command!\n");
@@ -143,7 +147,7 @@ void vsb_server_handle_connection_event(vsb_conn_t *conn)
 	ssize_t rval;
 
 	bzero(buf, sizeof(buf));
-
+	
 	while (1) {
 		if ((rval = read(vsb_conn_get_fd(conn), buf, sizeof(buf))) < 0) {
 			if (errno == EWOULDBLOCK) {
@@ -167,13 +171,20 @@ void vsb_server_handle_connection_event(vsb_conn_t *conn)
 	}
 }
 
-int vsb_server_send(vsb_server_t *server, void *data, size_t len)
+void vsb_server_set_auto_broadcast(vsb_server_t *vsb_server, bool value)
 {
-	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
-	vsb_server_broadcast_frame(server, frame, 0);
-	vsb_frame_destroy(frame);
+	auto_broadcast = value;
+}
 
+int vsb_server_send(vsb_server_t *vsb_server, void *data, size_t len)
+{
+	vsb_server_broadcast_data(vsb_server, data, len, 0);
 	return 0;
+}
+
+void vsb_server_broadcast(vsb_server_t *vsb_server, void *data, size_t len, vsb_conn_t *from)
+{
+	vsb_server_broadcast_data(vsb_server, data, len, vsb_conn_get_fd(from));
 }
 
 void vsb_server_register_receive_data_cb(vsb_server_t *server, vsb_server_receive_data_cb_t recv_cb, void *arg)
@@ -192,3 +203,9 @@ static int vsb_server_send_frame(vsb_conn_t *conn, vsb_frame_t *frame)
 	return 0;
 }
 
+static void vsb_server_broadcast_data(vsb_server_t *server, void *data, size_t len, int from_fd)
+{
+	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
+	vsb_server_broadcast_frame(server, frame, from_fd);
+	vsb_frame_destroy(frame);
+}

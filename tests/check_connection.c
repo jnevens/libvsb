@@ -39,9 +39,11 @@ START_TEST(test_vsb_connection_frame_receiver)
 	vsb_conn_destroy(conn);
 }END_TEST
 
+static vsb_conn_t *disco_conn = NULL;
 static char *disco_test = NULL;
-static void disco_callback(void *arg)
+static void disco_callback(vsb_conn_t *conn, void *arg)
 {
+	disco_conn = conn;
 	disco_test = (char *)arg;
 }
 
@@ -50,6 +52,7 @@ START_TEST(test_vsb_connection_disco_callback)
 	vsb_conn_t *conn = vsb_conn_init(5, "lol");
 	vsb_conn_register_disconnect_cb(conn, disco_callback ,"bar");
 	vsb_conn_disconnect(conn);
+	ck_assert_ptr_eq(disco_conn, conn);
 	ck_assert_ptr_ne(disco_test, NULL);
 	ck_assert_str_eq(disco_test, "bar");
 	vsb_conn_destroy(conn);
