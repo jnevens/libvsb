@@ -73,3 +73,5 @@ tests/check_connection
 tests/check_connection_list
 tests/*.gcda
 tests/check_frame_receiver
+tests/check_server
+tests/check_client
