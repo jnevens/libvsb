@@ -16,9 +16,9 @@ vsb_client_t *vsb_client_init(const char *path, const char *name);
 void vsb_client_close(vsb_client_t *client);
 int vsb_client_get_fd(vsb_client_t *client);
 int vsb_client_get_id(vsb_client_t *client);
-void vsb_client_register_incoming_data_cb(vsb_client_t *client, vsb_client_incoming_data_cb_t data_callback, void *arg);
-void vsb_client_register_disconnect_cb(vsb_client_t *client, vsb_client_disconnection_cb_t disco_cb, void *arg);
-void vsb_client_handle_incoming_event(vsb_client_t *client);
+int vsb_client_register_incoming_data_cb(vsb_client_t *client, vsb_client_incoming_data_cb_t data_callback, void *arg);
+int vsb_client_register_disconnect_cb(vsb_client_t *client, vsb_client_disconnection_cb_t disco_cb, void *arg);
+int vsb_client_handle_incoming_event(vsb_client_t *client);
 
 int vsb_client_send_data(vsb_client_t *client, void *data, size_t len);
 

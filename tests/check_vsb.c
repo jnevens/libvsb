@@ -7,7 +7,7 @@
 #include "../include/libvsb/server.h"
 #include "../include/libvsb/client.h"
 
-const char *tmp_vsb_socket = "/tmp/vsb.ut.socket";
+static const char *tmp_vsb_socket = "/tmp/vsb.ut.socket";
 
 START_TEST(test_vsb_server_create_destroy)
 {
