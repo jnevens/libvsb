@@ -146,7 +146,7 @@ static void vsb_client_handle_incoming_frame(vsb_client_t *client, vsb_frame_t *
 	case VSB_CMD_DATA: {
 		if (client->data_callback) {
 			client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame),
-					client->data_callback_arg);
+				client->data_callback_arg);
 		}
 		break;
 	}
@@ -191,13 +191,11 @@ int vsb_client_handle_incoming_event(vsb_client_t *client)
 
 int vsb_client_send_data(vsb_client_t *client, void *data, size_t len)
 {
-	int rv = -1;
-
 	if(!client || !data || len < 1)
-		return rv;
+		return -1;
 
 	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
-	rv = vsb_client_send_frame(client, frame);
+	int rv = vsb_client_send_frame(client, frame);
 	vsb_frame_destroy(frame);
 
 	return rv;
