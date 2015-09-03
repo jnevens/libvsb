@@ -33,21 +33,32 @@ struct vsb_conn_s
 
 vsb_conn_t *vsb_conn_init(int fd, void *arg)
 {
+	if(fd < 1)
+		return NULL;
+
 	vsb_conn_t *vsb_conn = calloc(1, sizeof(vsb_conn_t));
+	if(!vsb_conn) {
+		exit(-ENOMEM);
+	}
+
 	vsb_conn->arg = arg;
 	vsb_conn->fd = fd;
 	return vsb_conn;
 }
 
-void vsb_conn_disconnect(vsb_conn_t *conn)
+static void vsb_conn_disconnect(vsb_conn_t *conn)
 {
 	if (conn->disco_cb)
 		conn->disco_cb(conn, conn->disco_arg);
+
 	close(conn->fd);
 }
 
 void vsb_conn_destroy(vsb_conn_t *conn)
 {
+	if(!conn)
+		return;
+
 	vsb_conn_disconnect(conn);
 	vsb_frame_receiver_reset(&conn->receiver);
 	free(conn->client_name);
@@ -56,31 +67,56 @@ void vsb_conn_destroy(vsb_conn_t *conn)
 
 int vsb_conn_get_fd(vsb_conn_t *vsb_conn)
 {
+	if(!vsb_conn)
+		return -1;
+
 	return vsb_conn->fd;
 }
 
 void *vsb_conn_get_arg(vsb_conn_t *conn)
 {
+	if(!conn)
+		return NULL;
+
 	return conn->arg;
 }
 
 char *vsb_conn_get_name(vsb_conn_t *conn)
 {
+	if(!conn)
+		return NULL;
+
 	return conn->client_name;
 }
 
 vsb_frame_receiver_t *vsb_conn_get_frame_receiver(vsb_conn_t *conn)
 {
+	if(!conn)
+		return NULL;
+
 	return &conn->receiver;
 }
 
-void vsb_conn_register_disconnect_cb(vsb_conn_t *vsb_conn, vsb_server_conn_disconnection_cb_t disco_cb, void *arg)
+int vsb_conn_register_disconnect_cb(vsb_conn_t *vsb_conn, vsb_server_conn_disconnection_cb_t disco_cb, void *arg)
 {
+	if(!vsb_conn || !disco_cb)
+		return -1;
+
 	vsb_conn->disco_cb = disco_cb;
 	vsb_conn->disco_arg = arg;
+
+	return 0;
 }
 
-void vsb_conn_set_name(vsb_conn_t *conn, char *name)
+int vsb_conn_set_name(vsb_conn_t *conn, char *name)
 {
+	if(!conn || !name)
+		return -1;
+
 	conn->client_name = strdup(name);
+	if(!conn->client_name) {
+		exit(-ENOMEM);
+	}
+
+	return 0;
 }

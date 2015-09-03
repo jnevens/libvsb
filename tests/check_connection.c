@@ -23,12 +23,26 @@ START_TEST(test_vsb_connection_create_destroy)
 	vsb_conn_destroy(conn);
 }END_TEST
 
+START_TEST(test_vsb_connection_create_destroy_with_invalid_input)
+{
+	vsb_conn_t *conn = vsb_conn_init(0, "lol");
+	ck_assert_ptr_eq(conn, NULL);
+	vsb_conn_destroy(conn);
+}END_TEST
+
 START_TEST(test_vsb_connection_name)
 {
 	vsb_conn_t *conn = vsb_conn_init(5, "lol");
 	vsb_conn_set_name(conn, "foobar");
 	ck_assert_str_eq(vsb_conn_get_name(conn), "foobar");
 	vsb_conn_destroy(conn);
+}END_TEST
+
+START_TEST(test_vsb_connection_set_get_name_with_invalid_input)
+{
+	ck_assert_int_eq(vsb_conn_set_name((vsb_conn_t *)0xdeadbeef, NULL), -1);
+	ck_assert_int_eq(vsb_conn_set_name(NULL, "lol"), -1);
+	ck_assert_ptr_eq(vsb_conn_get_name(NULL), NULL);
 }END_TEST
 
 START_TEST(test_vsb_connection_frame_receiver)
@@ -51,11 +65,21 @@ START_TEST(test_vsb_connection_disco_callback)
 {
 	vsb_conn_t *conn = vsb_conn_init(5, "lol");
 	vsb_conn_register_disconnect_cb(conn, disco_callback ,"bar");
-	vsb_conn_disconnect(conn);
+	vsb_conn_destroy(conn);
 	ck_assert_ptr_eq(disco_conn, conn);
 	ck_assert_ptr_ne(disco_test, NULL);
 	ck_assert_str_eq(disco_test, "bar");
-	vsb_conn_destroy(conn);
+}END_TEST
+
+START_TEST(test_vsb_conn_get_fd_with_invalid_input)
+{
+	ck_assert_int_eq(vsb_conn_get_fd(NULL), -1);
+}END_TEST
+
+START_TEST(test_vsb_conn_register_disconnect_cb_with_invalid_input)
+{
+	ck_assert_int_eq(vsb_conn_register_disconnect_cb(NULL, (vsb_server_conn_disconnection_cb_t)0x123, NULL), -1);
+	ck_assert_int_eq(vsb_conn_register_disconnect_cb((vsb_conn_t *)0xdeadbeef, NULL, NULL), -1);
 }END_TEST
 
 
@@ -70,10 +94,14 @@ Suite * vsb_suite(void)
 	tc_core = tcase_create("Core");
 
 	tcase_add_test(tc_core, test_vsb_connection_create_destroy);
+	tcase_add_test(tc_core, test_vsb_connection_create_destroy_with_invalid_input);
 	tcase_add_test(tc_core, test_vsb_connection_name);
+	tcase_add_test(tc_core, test_vsb_connection_set_get_name_with_invalid_input);
 	tcase_add_test(tc_core, test_vsb_connection_frame_receiver);
 	tcase_add_test(tc_core, test_vsb_connection_disco_callback);
 	tcase_add_test(tc_core, test_vsb_connection_create_destroy);
+	tcase_add_test(tc_core, test_vsb_conn_get_fd_with_invalid_input);
+	tcase_add_test(tc_core, test_vsb_conn_register_disconnect_cb_with_invalid_input);
 	suite_add_tcase(s, tc_core);
 
 	return s;

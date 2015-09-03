@@ -49,20 +49,27 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	int fd;
 	vsb_client_t *client = NULL;
 
+	if(!path || !name)
+		return NULL;
+
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0) {
-		perror("opening stream socket");
+		fprintf(stderr, "Cannot create socket!\n");
 		return NULL;
 	}
+
 	client = calloc(1, sizeof(vsb_client_t));
 	if (!client) {
-		exit(ENOMEM);
+		fprintf(stderr, "Cannot allocate memory!\n");
+		exit(-ENOMEM);
 	}
 
 	if (name) {
 		client->name = strdup(name);
-		if (!client->name)
-			exit(ENOMEM);
+		if (!client->name) {
+			fprintf(stderr, "Cannot allocate memory!\n");
+			exit(-ENOMEM);
+		}
 	}
 
 	// set socket non blocking
@@ -76,7 +83,7 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	if (connect(fd, (struct sockaddr *) &(client->server), sizeof(struct sockaddr_un)) < 0) {
 		close(fd);
 		free(client);
-		perror("connecting stream socket");
+		fprintf(stderr, "Cannot connect stream socket!\n");
 		return NULL;
 	}
 
@@ -85,6 +92,9 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 
 void vsb_client_close(vsb_client_t *client)
 {
+	if(!client)
+		return;
+
 	vsb_frame_receiver_reset(&client->receiver);
 	close(client->fd);
 	free(client->name);
@@ -93,35 +103,50 @@ void vsb_client_close(vsb_client_t *client)
 
 int vsb_client_get_fd(vsb_client_t *client)
 {
+	if(!client)
+		return -1;
+
 	return client->fd;
 }
 
 int vsb_client_get_id(vsb_client_t *client)
 {
+	if(!client)
+		return -1;
+
 	return client->id;
 }
 
-
-void vsb_client_register_incoming_data_cb(vsb_client_t *client, vsb_client_incoming_data_cb_t data_callback,
+int vsb_client_register_incoming_data_cb(vsb_client_t *client, vsb_client_incoming_data_cb_t data_callback,
 		void *arg)
 {
+	if(!client || !data_callback)
+		return -1;
+
 	client->data_callback = data_callback;
 	client->data_callback_arg = arg;
+
+	return 0;
 }
 
-void vsb_client_register_disconnect_cb(vsb_client_t *client, vsb_client_disconnection_cb_t disco_cb, void *arg)
+int vsb_client_register_disconnect_cb(vsb_client_t *client, vsb_client_disconnection_cb_t disco_cb, void *arg)
 {
+	if(!client || !disco_cb)
+		return -1;
+
 	client->disco_callback = disco_cb;
 	client->disco_callback_arg = arg;
+
+	return 0;
 }
 
-void vsb_client_handle_incoming_frame(vsb_client_t *client, vsb_frame_t *frame)
+static void vsb_client_handle_incoming_frame(vsb_client_t *client, vsb_frame_t *frame)
 {
 	switch (vsb_frame_get_cmd(frame)) {
 	case VSB_CMD_DATA: {
 		if (client->data_callback) {
 			client->data_callback(vsb_frame_get_data(frame), vsb_frame_get_datasize(frame),
-					client->data_callback_arg);
+				client->data_callback_arg);
 		}
 		break;
 	}
@@ -131,17 +156,20 @@ void vsb_client_handle_incoming_frame(vsb_client_t *client, vsb_frame_t *frame)
 	}
 }
 
-void vsb_client_handle_incoming_event(vsb_client_t *client)
+int vsb_client_handle_incoming_event(vsb_client_t *client)
 {
 	uint8_t buf[1024];
 	int rval;
+
+	if(!client)
+		return -1;
 
 	while (1) {
 		if ((rval = read(client->fd, buf, sizeof(buf))) < 0) {
 			if (errno == EWOULDBLOCK) {
 				break;
 			}
-			perror("reading stream message");
+			fprintf(stderr, "Error reading stream message\n");
 		} else if (rval == 0) { // close connection
 			close(client->fd);
 			if (client->disco_callback)
@@ -157,13 +185,17 @@ void vsb_client_handle_incoming_event(vsb_client_t *client)
 			}
 		}
 	}
+
+	return 0;
 }
 
 int vsb_client_send_data(vsb_client_t *client, void *data, size_t len)
 {
-	int rv = -1;
+	if(!client || !data || len < 1)
+		return -1;
+
 	vsb_frame_t *frame = vsb_frame_create(VSB_CMD_DATA, data, len);
-	rv = vsb_client_send_frame(client, frame);
+	int rv = vsb_client_send_frame(client, frame);
 	vsb_frame_destroy(frame);
 
 	return rv;
@@ -174,7 +206,7 @@ static int vsb_client_send_frame(vsb_client_t *client, vsb_frame_t *frame)
 	vsb_frame_set_src(frame, client->id);
 	size_t frame_len = vsb_frame_get_framesize(frame);
 	if (write(client->fd, frame, frame_len) != frame_len) {
-		perror("writing on stream socket");
+		fprintf(stderr, "Error writing on stream socket\n");
 		return -1;
 	}
 	return 0;
