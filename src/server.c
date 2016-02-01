@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -27,7 +28,8 @@
 struct vsb_server_s
 {
 	int server_fd;
-	struct sockaddr_un server;
+	struct sockaddr_un server_un;
+	struct sockaddr_in server_in;
 	vsb_conn_list_t *conn_list;
 	vsb_server_new_conn_cb_t new_conn_cb;
 	void *new_conn_cb_arg;
@@ -71,9 +73,45 @@ vsb_server_t *vsb_server_init(const char *path)
 		exit(-ENOMEM);
 	}
 
-	server->server.sun_family = AF_UNIX;
-	strcpy(server->server.sun_path, path);
-	if (bind(fd, (struct sockaddr *) &(server->server), sizeof(struct sockaddr_un))) {
+	server->server_un.sun_family = AF_UNIX;
+	strcpy(server->server_un.sun_path, path);
+	if (bind(fd, (struct sockaddr *) &(server->server_un), sizeof(struct sockaddr_un))) {
+		free(server);
+		fprintf(stderr, "Cannot bind socket!\n");
+		return NULL;
+	}
+
+	server->conn_list = vsb_conn_list_create();
+	server->auto_broadcast = true;
+
+	listen(fd, 5);
+	server->server_fd = fd;
+	return server;
+}
+
+vsb_server_t *vsb_server_init_tcp(uint16_t port)
+{
+	int fd;
+
+	if(port <= 0)
+		return NULL;
+
+	fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd < 0) {
+		fprintf(stderr, "Cannot create socket!\n");
+		return NULL;
+	}
+
+	vsb_server_t *server = calloc(1, sizeof(vsb_server_t));
+	if (!server) {
+		fprintf(stderr, "Cannot allocate memory!\n");
+		exit(-ENOMEM);
+	}
+
+	server->server_in.sin_family = AF_INET;
+	server->server_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	server->server_in.sin_port = htons(port);
+	if (bind(fd, (struct sockaddr *) &(server->server_in), sizeof(struct sockaddr_in))) {
 		free(server);
 		fprintf(stderr, "Cannot bind socket!\n");
 		return NULL;

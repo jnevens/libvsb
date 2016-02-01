@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -36,7 +37,8 @@ struct vsb_client_s
 	vsb_client_disconnection_cb_t disco_callback;
 	void *disco_callback_arg;
 	vsb_frame_receiver_t receiver;
-	struct sockaddr_un server;
+	struct sockaddr_un server_un;
+	struct sockaddr_in server_in;
 	struct vsb_client_id_name client_id_lookup_table[VSB_MAX_CONNECTIONS];
 	int fd;
 };
@@ -77,15 +79,69 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
 	client->fd = fd;
-	client->server.sun_family = AF_UNIX;
-	strcpy(client->server.sun_path, path);
+	client->server_un.sun_family = AF_UNIX;
+	strcpy(client->server_un.sun_path, path);
 
-	if (connect(fd, (struct sockaddr *) &(client->server), sizeof(struct sockaddr_un)) < 0) {
+	if (connect(fd, (struct sockaddr *) &(client->server_un), sizeof(struct sockaddr_un)) < 0) {
 		close(fd);
 		free(client);
 		fprintf(stderr, "Cannot connect stream socket!\n");
 		return NULL;
 	}
+
+	return client;
+}
+
+vsb_client_t *vsb_client_init_tcp(const char *ip, uint16_t port, const char *name)
+{
+	int fd;
+	vsb_client_t *client = NULL;
+
+	if(port <= 0 || name == NULL || strlen(name) == 0)
+		return NULL;
+
+	fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (fd < 0) {
+		fprintf(stderr, "Cannot create socket!\n");
+		return NULL;
+	}
+
+	client = calloc(1, sizeof(vsb_client_t));
+	if (!client) {
+		fprintf(stderr, "Cannot allocate memory!\n");
+		exit(-ENOMEM);
+	}
+
+	if (name) {
+		client->name = strdup(name);
+		if (!client->name) {
+			free(client);
+			fprintf(stderr, "Cannot allocate memory!\n");
+			exit(-ENOMEM);
+		}
+	}
+
+	client->fd = fd;
+	client->server_in.sin_family = AF_INET;
+	client->server_in.sin_port = htons(port);
+
+	if(inet_pton(AF_INET, ip, &client->server_in.sin_addr) <= 0) {
+		fprintf(stderr, "Invalid target IP!\n");
+		close(fd);
+		free(client);
+		return NULL;
+	}
+
+	if (connect(fd, (struct sockaddr *) &(client->server_in), sizeof(struct sockaddr_in)) < 0) {
+		close(fd);
+		free(client);
+		fprintf(stderr, "Cannot connent to server!");
+		return NULL;
+	}
+
+	// set socket non blocking
+	int flags = fcntl(fd, F_GETFL, 0);
+	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
 	return client;
 }

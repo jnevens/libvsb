@@ -17,6 +17,7 @@ typedef void (*vsb_server_new_conn_cb_t)(vsb_conn_t *vsb_conn, void *arg);
 typedef void (*vsb_server_receive_data_cb_t)(vsb_conn_t *vsb_conn, void *data, size_t len, void *arg);
 
 vsb_server_t *vsb_server_init(const char *path);
+vsb_server_t *vsb_server_init_tcp(uint16_t port);
 void vsb_server_close(vsb_server_t *vsb_server);
 int vsb_server_get_fd(vsb_server_t *vsb_server);
 int vsb_server_register_new_connection_cb(vsb_server_t *vsb_server, vsb_server_new_conn_cb_t new_conn_cb, void *arg);

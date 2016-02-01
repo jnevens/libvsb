@@ -13,6 +13,7 @@ typedef void (*vsb_client_incoming_data_cb_t)(void *data, size_t len, void *arg)
 typedef void (*vsb_client_disconnection_cb_t)(void *arg);
 
 vsb_client_t *vsb_client_init(const char *path, const char *name);
+vsb_client_t *vsb_client_init_tcp(const char *ip, uint16_t port, const char *name);
 void vsb_client_close(vsb_client_t *client);
 int vsb_client_get_fd(vsb_client_t *client);
 int vsb_client_get_id(vsb_client_t *client);
