@@ -68,7 +68,8 @@ vsb_server_t *vsb_server_init(const char *path)
 	vsb_server_t *server = calloc(1, sizeof(vsb_server_t));
 	if (!server) {
 		fprintf(stderr, "Cannot allocate memory!\n");
-		exit(-ENOMEM);
+		close(fd);
+		return NULL;
 	}
 
 	server->server.sun_family = AF_UNIX;
@@ -81,6 +82,12 @@ vsb_server_t *vsb_server_init(const char *path)
 	}
 
 	server->conn_list = vsb_conn_list_create();
+	if (!server->conn_list) {
+		close(fd);
+		free(server);
+		return NULL;
+	}
+
 	server->auto_broadcast = true;
 
 	listen(fd, 5);
@@ -136,11 +143,18 @@ int vsb_server_handle_server_event(vsb_server_t *server)
 		fcntl(nfd, F_SETFL, flags | O_NONBLOCK);
 
 		vsb_conn_t *conn = vsb_conn_init(nfd, server);
+		if (!conn) {
+			close(nfd);
+			return -1;
+		}
 
 		if (server->new_conn_cb)
 			server->new_conn_cb(conn, NULL);
 
-		vsb_conn_list_add(vsb_server_get_conn_list(server), conn);
+		if (vsb_conn_list_add(vsb_server_get_conn_list(server), conn) != 0) {
+			vsb_conn_destroy(conn);
+			return -1;
+		}
 	}
 
 	return 0;

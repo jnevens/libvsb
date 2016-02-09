@@ -61,14 +61,17 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	client = calloc(1, sizeof(vsb_client_t));
 	if (!client) {
 		fprintf(stderr, "Cannot allocate memory!\n");
-		exit(-ENOMEM);
+		close(fd);
+		return NULL;
 	}
 
 	if (name) {
 		client->name = strdup(name);
 		if (!client->name) {
 			fprintf(stderr, "Cannot allocate memory!\n");
-			exit(-ENOMEM);
+			close(fd);
+			free(client);
+			return NULL;
 		}
 	}
 

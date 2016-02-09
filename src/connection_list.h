@@ -15,7 +15,7 @@ typedef struct vsb_conn_list_iter_s vsb_conn_list_iter_t;
 
 vsb_conn_list_t *vsb_conn_list_create(void);
 void vsb_conn_list_destroy(vsb_conn_list_t *conn_list);
-void vsb_conn_list_add(vsb_conn_list_t *conn_list, vsb_conn_t *vsb_conn);
+int vsb_conn_list_add(vsb_conn_list_t *conn_list, vsb_conn_t *vsb_conn);
 void vsb_conn_list_remove(vsb_conn_list_t *conn_list, vsb_conn_t *conn);
 int vsb_conn_list_get_count(vsb_conn_list_t *conn_list);
 

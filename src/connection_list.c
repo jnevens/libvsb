@@ -40,7 +40,7 @@ vsb_conn_list_t *vsb_conn_list_create(void)
 {
 	vsb_conn_list_t *conn_list = calloc(1, sizeof(vsb_conn_list_t));
 	if (!conn_list) {
-		exit(-ENOMEM);
+		return NULL;
 	}
 	return conn_list;
 }
@@ -58,9 +58,12 @@ void vsb_conn_list_destroy(vsb_conn_list_t *conn_list)
 	free(conn_list);
 }
 
-void vsb_conn_list_add(vsb_conn_list_t *conn_list, vsb_conn_t *vsb_conn)
+int vsb_conn_list_add(vsb_conn_list_t *conn_list, vsb_conn_t *vsb_conn)
 {
 	vsb_conn_list_node_t *conn_node = vsb_conn_list_node_create(vsb_conn);
+	if (!conn_node)
+		return -1;
+
 	if (conn_list->connections == NULL) {
 		conn_list->connections = conn_node;
 		conn_list->conn_count++;
@@ -75,6 +78,8 @@ void vsb_conn_list_add(vsb_conn_list_t *conn_list, vsb_conn_t *vsb_conn)
 			conn_node_ptr = conn_node_ptr->next;
 		}
 	}
+
+	return 0;
 }
 
 int vsb_conn_list_get_count(vsb_conn_list_t *conn_list)
@@ -129,7 +134,7 @@ static vsb_conn_list_node_t *vsb_conn_list_node_create(vsb_conn_t *conn)
 {
 	vsb_conn_list_node_t *conn_node = calloc(1, sizeof(vsb_conn_list_node_t));
 	if (!conn_node) {
-		exit(-ENOMEM);
+		return NULL;
 	}
 	conn_node->connection = conn;
 	return conn_node;

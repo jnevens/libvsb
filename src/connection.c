@@ -38,7 +38,7 @@ vsb_conn_t *vsb_conn_init(int fd, void *arg)
 
 	vsb_conn_t *vsb_conn = calloc(1, sizeof(vsb_conn_t));
 	if(!vsb_conn) {
-		exit(-ENOMEM);
+		return NULL;
 	}
 
 	vsb_conn->arg = arg;
@@ -115,7 +115,7 @@ int vsb_conn_set_name(vsb_conn_t *conn, char *name)
 
 	conn->client_name = strdup(name);
 	if(!conn->client_name) {
-		exit(-ENOMEM);
+		return -1;
 	}
 
 	return 0;
