@@ -74,6 +74,7 @@ vsb_server_t *vsb_server_init(const char *path)
 	server->server.sun_family = AF_UNIX;
 	strcpy(server->server.sun_path, path);
 	if (bind(fd, (struct sockaddr *) &(server->server), sizeof(struct sockaddr_un))) {
+		close(fd);
 		free(server);
 		fprintf(stderr, "Cannot bind socket!\n");
 		return NULL;
