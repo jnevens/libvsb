@@ -8,6 +8,8 @@
 #include "../include/libvsb/client.h"
 
 static const char *tmp_vsb_socket = "/tmp/vsb.ut.socket";
+static const char *ip = "127.0.0.1";
+static const uint16_t port = 61432;
 
 START_TEST(test_vsb_server_create_destroy)
 {
@@ -22,6 +24,17 @@ START_TEST(test_vsb_client_create_destroy)
 	unlink(tmp_vsb_socket);
 	vsb_server_t *server = vsb_server_init(tmp_vsb_socket);
 	vsb_client_t *client = vsb_client_init(tmp_vsb_socket, "name");
+	ck_assert_int_gt(vsb_client_get_fd(client),2);
+	ck_assert_int_gt(vsb_server_get_fd(server),2);
+	ck_assert_ptr_ne(client, NULL);
+	vsb_client_close(client);
+	vsb_server_close(server);
+}END_TEST
+
+START_TEST(test_vsb_client_tcp_create_destroy)
+{
+	vsb_server_t *server = vsb_server_init_tcp(port);
+	vsb_client_t *client = vsb_client_init_tcp(ip, port, "name");
 	ck_assert_int_gt(vsb_client_get_fd(client),2);
 	ck_assert_int_gt(vsb_server_get_fd(server),2);
 	ck_assert_ptr_ne(client, NULL);
@@ -50,6 +63,29 @@ START_TEST(test_vsb_client_send_data)
 	vsb_server_register_new_connection_cb(server, new_conn_cb, NULL);
 	vsb_server_register_receive_data_cb(server, server_incoming_data_cb, NULL);
 	vsb_client_t *client = vsb_client_init(tmp_vsb_socket, "name");
+	vsb_server_handle_server_event(server);
+
+	vsb_client_send_data(client, "foobar", 7);
+	ck_assert_int_eq(1,1);
+	vsb_server_handle_connection_event(client_connection);
+	ck_assert_int_eq(1,1);
+	ck_assert_ptr_eq(server_incoming_conn, client_connection);
+	ck_assert_str_eq(server_incoming_data, "foobar");
+	ck_assert_int_eq(1,1);
+
+	vsb_client_close(client);
+	vsb_server_close(server);
+	free(server_incoming_data);
+	server_incoming_data = NULL;
+	client_connection = NULL;
+}END_TEST
+
+START_TEST(test_vsb_client_send_data_tcp)
+{
+	vsb_server_t *server = vsb_server_init_tcp(port);
+	vsb_server_register_new_connection_cb(server, new_conn_cb, NULL);
+	vsb_server_register_receive_data_cb(server, server_incoming_data_cb, NULL);
+	vsb_client_t *client = vsb_client_init_tcp(ip, port, "name");
 	vsb_server_handle_server_event(server);
 
 	vsb_client_send_data(client, "foobar", 7);
