@@ -1,4 +1,8 @@
+
 lib_LTLIBRARIES = libevquick.la
+
+libevquickdir = $(includedir)/libevquick
+libevquick_HEADERS = libevquick.h
 
 libevquick_la_LIBADD =
 libevquick_la_LDFLAGS =
