@@ -204,11 +204,28 @@ int vsb_client_send_data(vsb_client_t *client, void *data, size_t len)
 	return rv;
 }
 
+static ssize_t write_blocking(int fd, const void *data, size_t size)
+{
+	ssize_t n = 0;
+
+	while ((n = write(fd, data, size)) < 0 && errno == EAGAIN) {
+		fd_set fds;
+		FD_ZERO(&fds);
+		FD_SET(fd, &fds);
+
+		int rc = select(fd + 1, NULL, &fds, NULL, NULL);
+		if (rc < 0)
+			return -1;
+	}
+
+	return n;
+}
+
 static int vsb_client_send_frame(vsb_client_t *client, vsb_frame_t *frame)
 {
 	vsb_frame_set_src(frame, client->id);
 	size_t frame_len = vsb_frame_get_framesize(frame);
-	if (write(client->fd, frame, frame_len) != frame_len) {
+	if (write_blocking(client->fd, frame, frame_len) != frame_len) {
 		fprintf(stderr, "Error writing on stream socket\n");
 		return -1;
 	}
