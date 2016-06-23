@@ -6,6 +6,5 @@ includedir=@includedir@
 Name: libvsb
 Description: A library for easy usage of a virtual serial bus.
 Version: @VERSION@
-Requires.private: @DEPENDENCIES@
 Libs: -L${libdir} -lvsb
 Cflags: -I${includedir}
