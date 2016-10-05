@@ -1,5 +1,5 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include
-AM_CFLAGS = -pthread -lcheck_pic -lrt -lm
+AM_CFLAGS = -pthread -lcheck_pic -lrt -lm -lsubunit
 LDADD = ../src/libvsb.la
 
 TESTS = check_vsb check_frame check_frame_receiver check_connection check_connection_list check_server check_client
