@@ -78,7 +78,7 @@ AC_SUBST([DC_VERSION],[dc_version])
 AC_SUBST([DC_VERSION_MAJOR],[dc_version_major])
 AC_SUBST([DC_VERSION_MINOR],[dc_version_minor])
 AC_SUBST([DC_VERSION_MICRO],[dc_version_micro])
-AC_SUBST([DC_VERSION_LIBTOOL],[dc_version_lt_current:dc_version_lt_revision:    dc_version_lt_age])
+AC_SUBST([DC_VERSION_LIBTOOL],[dc_version_lt_current:dc_version_lt_revision:dc_version_lt_age])
 
 # Version suffix.
 m4_ifset([dc_version_suffix],[
