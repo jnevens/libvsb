@@ -11,6 +11,7 @@ libvsb_la_SOURCES = \
 	connection_list.h \
 	frame.h \
 	frame_receiver.h \
+	log.h \
 	server.h \
 	vsb.h \
 	client.c \

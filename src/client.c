@@ -20,6 +20,7 @@
 #include "libvsb/client.h"
 #include "frame.h"
 #include "frame_receiver.h"
+#include "log.h"
 
 struct vsb_client_id_name
 {
@@ -54,13 +55,13 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0) {
-		fprintf(stderr, "Cannot create socket!\n");
+		LOG_SYSERROR(errno);
 		return NULL;
 	}
 
 	client = calloc(1, sizeof(vsb_client_t));
 	if (!client) {
-		fprintf(stderr, "Cannot allocate memory!\n");
+		LOG_SYSERROR(errno);
 		close(fd);
 		return NULL;
 	}
@@ -68,7 +69,7 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	if (name) {
 		client->name = strdup(name);
 		if (!client->name) {
-			fprintf(stderr, "Cannot allocate memory!\n");
+			LOG_SYSERROR(errno);
 			close(fd);
 			free(client);
 			return NULL;
@@ -84,9 +85,9 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	strcpy(client->server.sun_path, path);
 
 	if (connect(fd, (struct sockaddr *) &(client->server), sizeof(struct sockaddr_un)) < 0) {
+		LOG_SYSERROR(errno);
 		close(fd);
 		free(client);
-		fprintf(stderr, "Cannot connect stream socket!\n");
 		return NULL;
 	}
 
@@ -154,7 +155,7 @@ static void vsb_client_handle_incoming_frame(vsb_client_t *client, vsb_frame_t *
 		break;
 	}
 	default:
-		fprintf(stderr, "Cannot handle frame with this command!\n");
+		LOG_ERROR("Cannot handle frame with this command!");
 		break;
 	}
 }
@@ -172,7 +173,7 @@ int vsb_client_handle_incoming_event(vsb_client_t *client)
 			if (errno == EWOULDBLOCK) {
 				break;
 			}
-			fprintf(stderr, "Error reading stream message\n");
+			LOG_SYSERROR(errno);
 		} else if (rval == 0) { // close connection
 			close(client->fd);
 			if (client->disco_callback)
@@ -213,6 +214,8 @@ static ssize_t write_blocking(int fd, const void *data, size_t size)
 		FD_ZERO(&fds);
 		FD_SET(fd, &fds);
 
+		LOG_WARNING("Waiting after write failed with EAGAIN!");
+
 		int rc = select(fd + 1, NULL, &fds, NULL, NULL);
 		if (rc < 0)
 			return -1;
@@ -225,8 +228,13 @@ static int vsb_client_send_frame(vsb_client_t *client, vsb_frame_t *frame)
 {
 	vsb_frame_set_src(frame, client->id);
 	size_t frame_len = vsb_frame_get_framesize(frame);
-	if (write_blocking(client->fd, frame, frame_len) != frame_len) {
-		fprintf(stderr, "Error writing on stream socket\n");
+	ssize_t len = write_blocking(client->fd, frame, frame_len);
+	if (len != frame_len) {
+		if (len < 0) {
+			LOG_SYSERROR(errno);
+		} else {
+			LOG_ERROR("Partial write on socket (%zd of %zu bytes).", len, frame_len);
+		}
 		return -1;
 	}
 	return 0;

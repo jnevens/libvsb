@@ -23,6 +23,7 @@
 #include "connection_list.h"
 #include "frame_receiver.h"
 #include "server.h"
+#include "log.h"
 
 struct vsb_server_s
 {
@@ -61,13 +62,13 @@ vsb_server_t *vsb_server_init(const char *path)
 
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0) {
-		fprintf(stderr, "Cannot create socket!\n");
+		LOG_SYSERROR(errno);
 		return NULL;
 	}
 
 	vsb_server_t *server = calloc(1, sizeof(vsb_server_t));
 	if (!server) {
-		fprintf(stderr, "Cannot allocate memory!\n");
+		LOG_SYSERROR(errno);
 		close(fd);
 		return NULL;
 	}
@@ -75,9 +76,9 @@ vsb_server_t *vsb_server_init(const char *path)
 	server->server.sun_family = AF_UNIX;
 	strcpy(server->server.sun_path, path);
 	if (bind(fd, (struct sockaddr *) &(server->server), sizeof(struct sockaddr_un))) {
+		LOG_SYSERROR(errno);
 		close(fd);
 		free(server);
-		fprintf(stderr, "Cannot bind socket!\n");
 		return NULL;
 	}
 
@@ -172,7 +173,7 @@ static void vsb_server_handle_incoming_frame(vsb_conn_t *conn, vsb_frame_t *fram
 			vsb_server_broadcast_frame(server, frame, vsb_conn_get_fd(conn));
 		break;
 	default:
-		fprintf(stderr, "Cannot handle frame with this command!\n");
+		LOG_ERROR("Cannot handle frame with this command!");
 		break;
 	}
 }
@@ -194,7 +195,7 @@ int vsb_server_handle_connection_event(vsb_conn_t *conn)
 			if (errno == EWOULDBLOCK) {
 				break;
 			}
-			fprintf(stderr, "Problem reading stream message!\n");
+			LOG_SYSERROR(errno);
 		} else if (rval == 0) { // close connection
 			vsb_conn_list_remove(vsb_server_get_conn_list(server), conn);
 			vsb_conn_destroy(conn);
@@ -255,8 +256,13 @@ int vsb_server_register_receive_data_cb(vsb_server_t *server, vsb_server_receive
 static int vsb_server_send_frame(vsb_conn_t *conn, vsb_frame_t *frame)
 {
 	size_t frame_len = vsb_frame_get_framesize(frame);
-	if (write(vsb_conn_get_fd(conn), frame, frame_len) != frame_len) {
-		fprintf(stderr, "Error writing on stream socket\n");
+	ssize_t len = write(vsb_conn_get_fd(conn), frame, frame_len);
+	if (len != frame_len) {
+		if (len < 0) {
+			LOG_SYSERROR(errno);
+		} else {
+			LOG_ERROR("Partial write on socket (%zd of %zu bytes).", len, frame_len);
+		}
 		return -1;
 	}
 	return 0;
