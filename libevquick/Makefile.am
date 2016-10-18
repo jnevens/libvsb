@@ -8,3 +8,8 @@ libevquick_la_SOURCES = \
 	libevquick.h \
 	libevquick.c
 
+libevquickdir = $(includedir)/libevquick
+libevquick_HEADERS = \
+	heap.h \
+	libevquick.h
+	
