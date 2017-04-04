@@ -31,6 +31,7 @@
 # extra
 Makefile
 Makefile.in
+.autotools
 config.*
 configure
 .libs
