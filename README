@@ -14,6 +14,7 @@ If you downloaded the libvsb source code directly from the git
 source code repository, then you need to create the configure script as
 the first step:
 
+  $ libtoolize
   $ autoreconf --install
 
 To uninstall libvsb again, run:
