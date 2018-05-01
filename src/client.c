@@ -87,6 +87,7 @@ vsb_client_t *vsb_client_init(const char *path, const char *name)
 	if (connect(fd, (struct sockaddr *) &(client->server), sizeof(struct sockaddr_un)) < 0) {
 		LOG_SYSERROR(errno);
 		close(fd);
+		free(client->name);
 		free(client);
 		return NULL;
 	}
